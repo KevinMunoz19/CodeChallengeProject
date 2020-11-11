@@ -11,12 +11,13 @@ import {
   Alert,
 }	from 'react-native';
 
+
 const Details = (props) => {
 
   const [loading,setLoading] = useState(false);
   const [dataSerie,setDataSerie] = useState({});
   useEffect(()=>{
-    Alert.alert('Atención', `aaa ${props.message}`);
+    Alert.alert('Atencion', `aaa ${props.singleSerie}`);
 	},[]);
 
   return (

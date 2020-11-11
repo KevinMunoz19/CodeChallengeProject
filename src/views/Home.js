@@ -9,41 +9,120 @@ import {
 	ImageBackground,
 	ActivityIndicator,
   Alert,
+	Dimensions,
+	FlatList,
 }	from 'react-native';
+import useApiKitsu from './../utils/useApiKitsu';
+import GlobalColors from '../colors/GlobalColors';
+const window = Dimensions.get("window");
+const screen = Dimensions.get("screen");
 
-const Home = () => {
-
+const Home = (props) => {
   const [loading,setLoading] = useState(false);
-  const openDetailsView = () => Actions.details({text: 'Hello World!', message: 'AAAAA'});
+	const [dimensions, setDimensions] = useState({ window, screen });
+	const [dataFL,setDataFL] = useState([]);
+  const [isRefreshing,setIsRefreshing] = useState(false);
+	const [apiURL,setApiURL] = useState("");
+	const {getAnimeData} = useApiKitsu();
+
+  const onChange = ({ window, screen }) => {
+    setDimensions({ window, screen });
+  };
+  useEffect(() => {
+    Dimensions.addEventListener("change", onChange);
+    return () => {
+      Dimensions.removeEventListener("change", onChange);
+    };
+  });
+
+	useEffect(()=>{
+		//console.log("next link ",props.nextLink);
+		//console.log("data ",props.dataApi);
+		setApiURL(props.nextLink);
+		setDataFL([ ...dataFL, ...props.dataApi]);
+		//getFromApi();
+	},[]);
+
+	const getFromApi = () => {
+		console.log("Entrada getFromApi con link ",apiURL);
+    getAnimeData(apiURL,(res)=> {
+      let jsonResponse = JSON.parse(res);
+      let seriesData = jsonResponse.data;
+			setApiURL(jsonResponse.links.next);
+			var arrayRecoveredData = seriesData.map(element => element);
+			setDataFL([ ...dataFL, ...arrayRecoveredData]);
+    }, (err) => {
+      console.log("Respuesta no exitosa ",err);
+    });
+  }
+
+	const Item = ({ itemData,onPress }) => (
+    <TouchableOpacity onPress={onPress} style={[styles.item]}>
+      <Image
+        style={styles.tinyLogo}
+        source={{uri:itemData.attributes.posterImage.medium}}
+      />
+    </TouchableOpacity>
+  );
+  const renderItem = ({ item }) => (
+    <Item itemData={item} onPress={() => onSeriesSelected(item)}/>
+  );
+  const onSeriesSelected = (itemData) => {
+    console.log("id ",itemData.id);
+		Actions.details({singleSerie: itemData.id });
+
+  }
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    mockApi();
+ }
+  const mockApi = () => {
+    setTimeout(()=>{
+      getFromApi();
+			setIsRefreshing(false);
+		},3000);
+  }
 
   return (
     <View style={styles.container}>
-      {loading && (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator visible={false} size='large' color={red}/>
-          <Text allowFontScaling={false}>Cargando...</Text>
-        </View>
-      )}
-      {!loading && (
-        <View style={styles.textHeaderContainer}>
-          <Text style={{ ...styles.textHeader, fontSize:30}} allowFontScaling={false}>Home</Text>
-        </View>
-      )}
-      {!loading && (
-        <React.Fragment>
-          <View style={styles.imageContainer}>
-
-          </View>
-          <TouchableOpacity style={styles.sendButton} onPress={openDetailsView}>
-            <Text style={{color:"black", textAlign:'center', fontSize:25}} allowFontScaling={false}>AAAA</Text>
-          </TouchableOpacity>
-        </React.Fragment>
-      )}
+			<FlatList
+				data={dataFL}
+				renderItem={renderItem}
+				keyExtractor={item => item.id}
+				horizontal={true}
+				showsVerticalScrollIndicator ={false}
+				showsHorizontalScrollIndicator={false}
+				onRefresh={onRefresh}
+				refreshing={isRefreshing}
+				onEndReachedThreshold={0.1}
+				onEndReached={({ distanceFromEnd }) => {
+					if(distanceFromEnd >= 0) {
+						console.log("end reached");
+						onRefresh();
+					}
+				}}
+			/>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+	item: {
+    backgroundColor: '#f9c2ff',
+    height:250,
+    padding:5,
+  },
+  title: {
+    fontSize: 32,
+  },
+  tinyLogo: {
+    width: 150,
+    height: 150,
+  },
+	container: {
+		backgroundColor: "transparent",
+		flex: 1
+	},
   scrollView: {
     backgroundColor: "black",
   },
