@@ -35,20 +35,55 @@ const Init = () => {
 		getFromApi();
   },[]);
 
-
-
 	const getFromApi = () => {
-    getAnimeData("https://kitsu.io/api/edge/anime?filter%5Bcategories%5D=adventure&page%5Blimit%5D=10&page%5Boffset%5D=0",(res)=> {
+    getAnimeData("https://kitsu.io/api/edge/anime",(res)=> {
       let jsonResponse = JSON.parse(res);
       let seriesData = jsonResponse.data;
-			var arrayRecoveredData = seriesData.map(element => element);
+      console.log("Numero de series ",seriesData.length);
+      var arrayRecoveredData = seriesData.map(function(element){
+         var mappedElement = {};
+         mappedElement.id = element.id;
+         mappedElement.type = element.type;
+         mappedElement.mediumImage = element.attributes.posterImage.medium;
+         var mappedElementAttributes = {};
+         mappedElementAttributes.synopsis = element.attributes.synopsis;
+         mappedElementAttributes.description = element.attributes.description;
+         mappedElementAttributes.averageRating = element.attributes.averageRating;
+         mappedElementAttributes.youtubeVideoId = element.attributes.youtubeVideoId;
+         mappedElementAttributes.genres = element.relationships.genres.links.related;
+         var mappedElementTitles = {};
+         mappedElementTitles.canonicalTitle = element.attributes.canonicalTitle;
+         mappedElementTitles.en = element.attributes.titles.en;
+         mappedElementTitles.en_jp = element.attributes.titles.en_jp;
+         mappedElementTitles.ja_jp = element.attributes.titles.ja_jp;
+         mappedElementAttributes.titles = mappedElementTitles;
+         mappedElement.attr = mappedElementAttributes;
+         var mappedElementDates = {};
+         mappedElementDates.startDate = element.attributes.startDate;
+         mappedElementDates.endDate = element.attributes.endDate;
+         mappedElementDates.status = element.attributes.status;
+         mappedElementDates.nextRelease = element.attributes.nextRelease;
+         mappedElement.dates = mappedElementDates;
+         var mappedElementEpisodes = {};
+         mappedElementEpisodes.count = element.attributes.episodeCount;
+         mappedElementEpisodes.episodeLength = element.attributes.episodeLength;
+         mappedElementEpisodes.episodeListLink = element.relationships.episodes.links.related;
+         mappedElement.episodes = mappedElementEpisodes;
+         var mappedElementRating = {};
+         mappedElementRating.ageRating = element.attributes.ageRating;
+         mappedElementRating.ageRatingGuide = element.attributes.ageRatingGuide;
+         mappedElement.rating = mappedElementRating;
+         var mappedElementCharacters = {};
+         mappedElementCharacters.characterListLink = element.relationships.characters.links.related;
+         mappedElement.characters = mappedElementCharacters;
+         return mappedElement;
+      });
 			setLoading(false);
-			Actions.home({text: 'Hello World!', dataApi:arrayRecoveredData, nextLink:jsonResponse.links.next });
+			Actions.home({dataApi:arrayRecoveredData, nextLink:jsonResponse.links.next });
     }, (err) => {
       console.log("Respuesta no exitosa ",err);
     });
   }
-
 
   return (
     <View style={styles.container}>

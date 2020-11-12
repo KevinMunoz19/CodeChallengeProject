@@ -14,6 +14,7 @@ import {
 }	from 'react-native';
 import useApiKitsu from './../utils/useApiKitsu';
 import GlobalColors from '../colors/GlobalColors';
+import SerieDisplay from '../components/SerieDisplay';
 const window = Dimensions.get("window");
 const screen = Dimensions.get("screen");
 
@@ -36,41 +37,65 @@ const Home = (props) => {
   });
 
 	useEffect(()=>{
-		//console.log("next link ",props.nextLink);
-		//console.log("data ",props.dataApi);
 		setApiURL(props.nextLink);
 		setDataFL([ ...dataFL, ...props.dataApi]);
-		//getFromApi();
 	},[]);
 
 	const getFromApi = () => {
-		console.log("Entrada getFromApi con link ",apiURL);
     getAnimeData(apiURL,(res)=> {
       let jsonResponse = JSON.parse(res);
       let seriesData = jsonResponse.data;
-			setApiURL(jsonResponse.links.next);
-			var arrayRecoveredData = seriesData.map(element => element);
-			setDataFL([ ...dataFL, ...arrayRecoveredData]);
+      console.log("Numero de series ",seriesData.length);
+      setApiURL(jsonResponse.links.next);
+      var arrayRecoveredData = seriesData.map(function(element){
+				var mappedElement = {};
+				mappedElement.id = element.id;
+				mappedElement.type = element.type;
+				mappedElement.mediumImage = element.attributes.posterImage.medium;
+				var mappedElementAttributes = {};
+				mappedElementAttributes.synopsis = element.attributes.synopsis;
+				mappedElementAttributes.description = element.attributes.description;
+				mappedElementAttributes.averageRating = element.attributes.averageRating;
+				mappedElementAttributes.youtubeVideoId = element.attributes.youtubeVideoId;
+				mappedElementAttributes.genres = element.relationships.genres.links.related;
+				var mappedElementTitles = {};
+				mappedElementTitles.canonicalTitle = element.attributes.canonicalTitle;
+				mappedElementTitles.en = element.attributes.titles.en;
+				mappedElementTitles.en_jp = element.attributes.titles.en_jp;
+				mappedElementTitles.ja_jp = element.attributes.titles.ja_jp;
+				mappedElementAttributes.titles = mappedElementTitles;
+				mappedElement.attr = mappedElementAttributes;
+				var mappedElementDates = {};
+				mappedElementDates.startDate = element.attributes.startDate;
+				mappedElementDates.endDate = element.attributes.endDate;
+				mappedElementDates.status = element.attributes.status;
+				mappedElementDates.nextRelease = element.attributes.nextRelease;
+				mappedElement.dates = mappedElementDates;
+				var mappedElementEpisodes = {};
+				mappedElementEpisodes.count = element.attributes.episodeCount;
+				mappedElementEpisodes.episodeLength = element.attributes.episodeLength;
+				mappedElementEpisodes.episodeListLink = element.relationships.episodes.links.related;
+				mappedElement.episodes = mappedElementEpisodes;
+				var mappedElementRating = {};
+				mappedElementRating.ageRating = element.attributes.ageRating;
+				mappedElementRating.ageRatingGuide = element.attributes.ageRatingGuide;
+				mappedElement.rating = mappedElementRating;
+				var mappedElementCharacters = {};
+				mappedElementCharacters.characterListLink = element.relationships.characters.links.related;
+				mappedElement.characters = mappedElementCharacters;
+				return mappedElement;
+      });
+      setDataFL([ ...dataFL, ...arrayRecoveredData ]);
     }, (err) => {
       console.log("Respuesta no exitosa ",err);
     });
   }
-
-	const Item = ({ itemData,onPress }) => (
-    <TouchableOpacity onPress={onPress} style={[styles.item]}>
-      <Image
-        style={styles.tinyLogo}
-        source={{uri:itemData.attributes.posterImage.medium}}
-      />
-    </TouchableOpacity>
-  );
-  const renderItem = ({ item }) => (
-    <Item itemData={item} onPress={() => onSeriesSelected(item)}/>
+	const renderItem = ({ item }) => (
+    <SerieDisplay itemData={item} onPress={() => onSeriesSelected(item)}/>
   );
   const onSeriesSelected = (itemData) => {
     console.log("id ",itemData.id);
-		Actions.details({singleSerie: itemData.id });
-
+		Actions.details({singleSerie: itemData });
   }
   const onRefresh = () => {
     setIsRefreshing(true);

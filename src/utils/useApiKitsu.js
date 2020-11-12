@@ -22,6 +22,7 @@ const useApiKitsu = () => {
       });
   }
 
+
   return {
     getAnimeData,
   };
