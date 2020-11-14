@@ -34,9 +34,10 @@ const Details = (props) => {
 	const {getAnimeData} = useApiKitsu();
 	const [dimensions, setDimensions] = useState({ window, screen });
 	const [renderMult,setRenderMult] = useState(["AAAAA","BBBBB","CCCCC","AAAAA","BBBBB","CCCCC","AAAAA","BBBBB","CCCCC"]);
-	const [renderMultObj,setRenderMultObj] = useState([{"id":"1","value":"AAA"},{"id":"2","value":"BBB"},{"id":"3","value":"CCC"},{"id":"4","value":"AAA"},{"id":"5","value":"BBB"},{"id":"6","value":"CCC"},{"id":"7","value":"CCC"},{"id":"8","value":"CCC"},{"id":"9","value":"CCC"},{"id":"10","value":"CCC"}]);
+	const [renderMultObj,setRenderMultObj] = useState([{"id":"1","name":"AAA"},{"id":"2","name":"BBB"},{"id":"3","name":"CCC"},{"id":"4","name":"AAA"},{"id":"5","name":"BBB"},{"id":"6","name":"CCC"},{"id":"7","name":"CCC"},{"id":"8","name":"CCC"},{"id":"9","name":"CCC"},{"id":"10","name":"CCC"}]);
 	const [characterModalVisible, setCharacterModalVisible] = useState(false);
-	const [renderMultObjEp,setRenderMultObjEp] = useState([{"id":"1","value":"111"},{"id":"2","value":"222"},{"id":"3","value":"333"},{"id":"4","value":"AAA"},{"id":"5","value":"BBB"},{"id":"6","value":"CCC"},{"id":"7","value":"CCC"},{"id":"8","value":"CCC"},{"id":"9","value":"CCC"},{"id":"10","value":"CCC"}]);
+	const [episodeModalVisible, setEpisodeModalVisible] = useState(false);
+	const [renderMultObjEp,setRenderMultObjEp] = useState([{"id":"1","name":"AAA"},{"id":"2","name":"BBB"},{"id":"3","name":"CCC"},{"id":"4","name":"AAA"},{"id":"5","name":"BBB"},{"id":"6","name":"CCC"},{"id":"7","name":"CCC"},{"id":"8","name":"CCC"},{"id":"9","name":"CCC"},{"id":"10","name":"CCC"}]);
 	const [modalFlToRender,setModalFlToRender] = useState("");
 	const [modalTitleToRender,setModalTitleToRender] = useState("");
 	const [responsiveFontSize,setResponsiveFontSize] = useState({});
@@ -87,7 +88,16 @@ const Details = (props) => {
 		var serieDetailsObj = props.singleSerie;
 		//getGenresFromApi(serieDetailsObj.attr.genres);
     //getEpisodesFromApi(serieDetailsObj.episodes.episodeListLink);
-    getCharacterListFromApi(serieDetailsObj.characters.characterListLink);
+    //getCharacterListFromApi(serieDetailsObj.characters.characterListLink);
+	},[]);
+
+	useEffect(()=>{
+		console.log("listado de genres ",props.singleSerie.attr.genresList);
+		setSerieGenres([...props.singleSerie.attr.genresList]);
+		console.log("listado de episodios ",props.singleSerie.episodes.episodesList);
+		setSerieEpisodes([...props.singleSerie.episodes.episodesList]);
+		console.log("listado de characters ",props.singleSerie.characters.singleCharacterList);
+		setSerieCharacters([...props.singleSerie.characters.singleCharacterList]);
 	},[]);
 
 	useEffect(()=>{
@@ -223,18 +233,26 @@ const Details = (props) => {
     });
   }
 
-	const renderItem = ({ item }) => (
-		<View style={{backgroundColor:"black",borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:50, width:100, alignItems:"center", justifyContent:"center"}}>
-			<Text style={{...styles.textHeader, fontSize:18,paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>{item.value}</Text>
+	const renderItemChar = ({ item }) => (
+		<View style={{backgroundColor:"black",borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
+			<Text style={{...styles.textHeader, fontSize:18,paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>{(item.names.name)}</Text>
+		</View>
+  );
+	const renderItemEp = ({ item }) => (
+		<View style={{backgroundColor:"black",borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
+			<Text style={{...styles.textHeader, fontSize:18,paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>{(item.titles.canonicalTitle)}</Text>
+			<Text style={{...styles.textHeader, fontSize:10,paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>S{(item.seasonNumber)} Ep{(item.number)}</Text>
+			<Text style={{...styles.textHeader, fontSize:10,paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>{(item.airdate)?(item.airdate).split("-").reverse().join("-"):"-"}</Text>
+
 		</View>
   );
 	const openModal = (modalType) => {
 		if (modalType == "Characters"){
-			setModalFlToRender([...renderMultObj]);
+			setModalFlToRender([...serieCharacters]);
 			setModalTitleToRender(modalType);
 			setCharacterModalVisible(true);
 		} else {
-			setModalFlToRender([...renderMultObjEp]);
+			setModalFlToRender([...serieEpisodes]);
 			setModalTitleToRender(modalType);
 			setCharacterModalVisible(true);
 		}
@@ -257,16 +275,42 @@ const Details = (props) => {
 						>
 							<Text style={styles.textStyle}>Close</Text>
 						</TouchableHighlight>
-						<Text style={styles.modalText}>Series {modalTitleToRender}</Text>
+						<Text style={styles.modalText}>Series Characters</Text>
 							<FlatList
-								data={modalFlToRender}
-								renderItem={renderItem}
+								data={serieCharacters}
+								renderItem={renderItemChar}
 								keyExtractor={item => item.id}
 								horizontal={true}
 								showsVerticalScrollIndicator ={false}
 								showsHorizontalScrollIndicator={false}
 							/>
-
+					</View>
+				</View>
+			</Modal>
+			<Modal
+				animationType="slide"
+				transparent={true}
+				visible={episodeModalVisible}
+				onBackdropPress={() => setEpisodeModalVisible(false)}
+				onRequestClose={() => setEpisodeModalVisible(false)}
+			>
+				<View style={styles.centeredView}>
+					<View style={styles.modalView}>
+						<TouchableHighlight
+							style={{ ...styles.openButton, backgroundColor: "#2196F3", alignSelf:'flex-end' }}
+							onPress={() => { setEpisodeModalVisible(false) }}
+						>
+							<Text style={styles.textStyle}>Close</Text>
+						</TouchableHighlight>
+						<Text style={styles.modalText}>Series First Episodes</Text>
+							<FlatList
+								data={serieEpisodes}
+								renderItem={renderItemEp}
+								keyExtractor={item => item.id}
+								horizontal={true}
+								showsVerticalScrollIndicator ={false}
+								showsHorizontalScrollIndicator={false}
+							/>
 					</View>
 				</View>
 			</Modal>
@@ -290,11 +334,11 @@ const Details = (props) => {
 	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.attr.titles.canonicalTitle}</Text>
 	          </View>
 						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"green",flexDirection:"row",width:"100%",justifyContent:"center"}}>
-							<TouchableOpacity style={{...styles.playButton}} onPress={() => { openModal("Characters")}}>
+							<TouchableOpacity style={{...styles.playButton}} onPress={() => { setCharacterModalVisible(true)}}>
 								<Icon name="face" color="white" size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
 								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Characters</Text>
 							</TouchableOpacity>
-							<TouchableOpacity style={{...styles.playButton}} onPress={() => { openModal("Episodes")}}>
+							<TouchableOpacity style={{...styles.playButton}} onPress={() => { setEpisodeModalVisible(true)}}>
 								<Icon name="subscriptions" color="white" size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
 								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Episodes</Text>
 							</TouchableOpacity>
@@ -308,7 +352,7 @@ const Details = (props) => {
 		          </View>
 	          </View>
 						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"black",flexDirection:"row",width:"100%"}}>
-	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.dates.startDate).split("-").reverse().join("-")}  to {(props.singleSerie.dates.endDate).split("-").reverse().join("-")}</Text>
+	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.dates.startDate).split("-").reverse().join("-")}  to {(props.singleSerie.dates.endDate)?((props.singleSerie.dates.endDate).split("-").reverse().join("-")):"-"}</Text>
 	          </View>
 	        </View>
 	      </View>
@@ -318,11 +362,11 @@ const Details = (props) => {
 							<Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, fontFamily:"Dosis-Medium"}} allowFontScaling={false}>Genres</Text>
 						</View>
 						<View style={{...styles.textHeaderContainer,flex:3,backgroundColor:"gray",flexDirection:"row",width:"100%",flexWrap:"wrap",justifyContent:"center"}}>
-						{renderMult.map((usr)=>{
+						{serieGenres.map((usr)=>{
 							try{
 									return(
-										<View style={{backgroundColor:"pink",borderRadius:30,marginHorizontal:10,marginVertical:3, padding:3}}>
-											<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,paddingLeft:0,padding:4, fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{usr}</Text>
+										<View style={{backgroundColor:"pink",borderRadius:30,marginHorizontal:10,marginVertical:3, padding:3}} key={usr.id}>
+											<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,paddingLeft:0,padding:4, fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{usr.name}</Text>
 										</View>
 									)
 							} catch(ex) {

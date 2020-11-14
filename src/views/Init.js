@@ -12,76 +12,48 @@ import {
 }	from 'react-native';
 import GlobalColors from '../colors/GlobalColors';
 import useApiKitsu from './../utils/useApiKitsu';
-
 const window = Dimensions.get("window");
 const screen = Dimensions.get("screen");
 
 const Init = () => {
   const [loading,setLoading] = useState(false);
 	const [dimensions, setDimensions] = useState({ window, screen });
+	const [dataPrev,setDataPrev] = useState([]);
+  const [apiURL,setApiURL] = useState("https://kitsu.io/api/edge/anime?page%5Blimit%5D=20&page%5Boffset%5D=0");
+	const [count,setCount] = useState(0);
+	const {getAnimeData,getFromApiAsync} = useApiKitsu();
 
-	const {getAnimeData} = useApiKitsu();
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
   };
-  useEffect(() => {
+
+	useEffect(() => {
     Dimensions.addEventListener("change", onChange);
     return () => {
       Dimensions.removeEventListener("change", onChange);
     };
   });
-	useEffect(() => {
-		setLoading(true)
-		getFromApi();
-  },[]);
 
-	const getFromApi = () => {
-    getAnimeData("https://kitsu.io/api/edge/anime",(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let seriesData = jsonResponse.data;
-      console.log("Numero de series ",seriesData.length);
-      var arrayRecoveredData = seriesData.map(function(element){
-         var mappedElement = {};
-         mappedElement.id = element.id;
-         mappedElement.type = element.type;
-         mappedElement.mediumImage = element.attributes.posterImage.medium;
-         var mappedElementAttributes = {};
-         mappedElementAttributes.synopsis = element.attributes.synopsis;
-         mappedElementAttributes.description = element.attributes.description;
-         mappedElementAttributes.averageRating = element.attributes.averageRating;
-         mappedElementAttributes.youtubeVideoId = element.attributes.youtubeVideoId;
-         mappedElementAttributes.genres = element.relationships.genres.links.related;
-         var mappedElementTitles = {};
-         mappedElementTitles.canonicalTitle = element.attributes.canonicalTitle;
-         mappedElementTitles.en = element.attributes.titles.en;
-         mappedElementTitles.en_jp = element.attributes.titles.en_jp;
-         mappedElementTitles.ja_jp = element.attributes.titles.ja_jp;
-         mappedElementAttributes.titles = mappedElementTitles;
-         mappedElement.attr = mappedElementAttributes;
-         var mappedElementDates = {};
-         mappedElementDates.startDate = element.attributes.startDate;
-         mappedElementDates.endDate = element.attributes.endDate;
-         mappedElementDates.status = element.attributes.status;
-         mappedElementDates.nextRelease = element.attributes.nextRelease;
-         mappedElement.dates = mappedElementDates;
-         var mappedElementEpisodes = {};
-         mappedElementEpisodes.count = element.attributes.episodeCount;
-         mappedElementEpisodes.episodeLength = element.attributes.episodeLength;
-         mappedElementEpisodes.episodeListLink = element.relationships.episodes.links.related;
-         mappedElement.episodes = mappedElementEpisodes;
-         var mappedElementRating = {};
-         mappedElementRating.ageRating = element.attributes.ageRating;
-         mappedElementRating.ageRatingGuide = element.attributes.ageRatingGuide;
-         mappedElement.rating = mappedElementRating;
-         var mappedElementCharacters = {};
-         mappedElementCharacters.characterListLink = element.relationships.characters.links.related;
-         mappedElement.characters = mappedElementCharacters;
-         return mappedElement;
-      });
-			setLoading(false);
-			Actions.home({dataApi:arrayRecoveredData, nextLink:jsonResponse.links.next });
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
+	// Trigger with change in data recovered from API. Get last 60 records by calling three times, pagination 20.
+  useEffect(()=>{
+		setLoading(true)
+    if(count < 3){
+      apiCon();
+    } else {
+    	setLoading(false);
+			Actions.home({dataApi:dataPrev, nextLink: apiURL});
+    }
+	},[dataPrev]);
+
+	// Call API, wait for result andcombine it with previous data. Add 1 to counter.
+	const apiCon = () => {
+    getFromApiAsync(apiURL,"series").then(response => {
+			console.log("response ",response.length)
+			var newUrl = response.pop();
+			console.log("response ",response.length)
+			setApiURL(newUrl);
+      setCount(count+1);
+      setDataPrev([...dataPrev, ...response])
     });
   }
 
