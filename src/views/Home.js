@@ -48,7 +48,7 @@ const Home = (props) => {
     if(charList.length != 0){
 			if(counter < charList.length){
 				var urlActual = charList[counter].singleCharacterLink;
-				getCharacterSingleFromApi(urlActual).then(response => {
+				getFromApiAsync(urlActual,"singleCharacter").then(response => {
 					setSingleCharList([...singleCharList,response]);
 					setCounter(counter+1);
 				});
@@ -133,12 +133,14 @@ const Home = (props) => {
 			console.log("resp ",response)
 			console.log("then genres")
 
-			getEpisodesFromApi(itemData.episodes.episodeListLink).then(response =>{
+			getFromApiAsync(itemData.episodes.episodeListLink,"episodeList").then(response =>{
+				response.pop();
 				console.log("resp ep ",response)
 				itemData.episodes.episodesList= [...response];
 				//Actions.details({singleSerie: itemData });
 
-				getCharacterListFromApi(itemData.characters.characterListLink).then(response =>{
+				getFromApiAsync(itemData.characters.characterListLink,"characterList").then(response =>{
+					response.pop();
 					console.log("resp char lst ",response)
 					itemData.characters.charactersList= [...response];
 					setCharList([...response]);
@@ -150,138 +152,7 @@ const Home = (props) => {
 
 		//Actions.details({singleSerie: itemData });
   }
-	const getGenresFromApi = async (genresApiUrl) => {
 
-
-		var myHeaders = new Headers();
-		myHeaders.append("Accept", "application/vnd.api+json");
-		myHeaders.append("Content-Type", "application/vnd.api+json");
-		myHeaders.append("Cookie", "__cfduid=d5f5453d12d2a1c6de803292f3a73e8ab1604949302");
-		var requestOptions = {
-			method: 'GET',
-			headers: myHeaders,
-			redirect: 'follow'
-		};
-	  try {
-	    let response = await fetch(
-	      genresApiUrl,
-				requestOptions
-	    );
-      let jsonResponse = await response.json();
-      let seriesData = await jsonResponse.data;
-			//Map data from result to custom JSON. Await for every record baing mapped
-      let arrayRecoveredData =  await Promise.all(seriesData.map(async (element) => {
-				var mappedElement = {};
-					mappedElement.id = await element.id;
-					mappedElement.name = await element.attributes.name;
-				return mappedElement;
-       }));
-	    return arrayRecoveredData;
-	  } catch (error) {
-	    console.error(error);
-	  }
-  }
-
-	const getEpisodesFromApi = async (episodesApiUrl) => {
-		var myHeaders = new Headers();
-		myHeaders.append("Accept", "application/vnd.api+json");
-		myHeaders.append("Content-Type", "application/vnd.api+json");
-		myHeaders.append("Cookie", "__cfduid=d5f5453d12d2a1c6de803292f3a73e8ab1604949302");
-		var requestOptions = {
-			method: 'GET',
-			headers: myHeaders,
-			redirect: 'follow'
-		};
-	  try {
-	    let response = await fetch(
-	      episodesApiUrl,
-				requestOptions
-	    );
-      let jsonResponse = await response.json();
-      let seriesData = await jsonResponse.data;
-			//Map data from result to custom JSON. Await for every record baing mapped
-      let arrayRecoveredData =  await Promise.all(seriesData.map(async (element) => {
-				var mappedElement = {};
-				mappedElement.id = element.id;
-				var mappedElementTitles = {};
-				mappedElementTitles.canonicalTitle = await element.attributes.canonicalTitle;
-				mappedElementTitles.en_us = await element.attributes.titles.en_us;
-				mappedElementTitles.en_jp = await element.attributes.titles.en_jp;
-				mappedElementTitles.ja_jp = await element.attributes.titles.ja_jp;
-				mappedElement.titles = await mappedElementTitles;
-				mappedElement.seasonNumber = await element.attributes.seasonNumber;
-				mappedElement.number = await element.attributes.number;
-				mappedElement.airdate = await element.attributes.airdate;
-				return mappedElement;
-       }));
-	    return arrayRecoveredData;
-	  } catch (error) {
-	    console.error(error);
-	  }
-  }
-
-	const getCharacterListFromApi = async (characterListApiUrl) => {
-		var myHeaders = new Headers();
-		myHeaders.append("Accept", "application/vnd.api+json");
-		myHeaders.append("Content-Type", "application/vnd.api+json");
-		myHeaders.append("Cookie", "__cfduid=d5f5453d12d2a1c6de803292f3a73e8ab1604949302");
-		var requestOptions = {
-			method: 'GET',
-			headers: myHeaders,
-			redirect: 'follow'
-		};
-	  try {
-	    let response = await fetch(
-	      characterListApiUrl,
-				requestOptions
-	    );
-      let jsonResponse = await response.json();
-      let seriesData = await jsonResponse.data;
-			//Map data from result to custom JSON. Await for every record baing mapped
-      let arrayRecoveredData =  await Promise.all(seriesData.map(async (element) => {
-				var mappedElement = {};
-				mappedElement.id = await element.id;
-				mappedElement.singleCharacterLink = await element.relationships.character.links.related;
-				return mappedElement;
-       }));
-	    return arrayRecoveredData;
-	  } catch (error) {
-	    console.error(error);
-	  }
-  }
-
-	const getCharacterSingleFromApi = async (characterSingleApiUrl) => {
-		//console.log("Entrada Async");
-		//console.log("Entrada Async url ",apiUrl);
-		var myHeaders = new Headers();
-		myHeaders.append("Accept", "application/vnd.api+json");
-		myHeaders.append("Content-Type", "application/vnd.api+json");
-		myHeaders.append("Cookie", "__cfduid=d5f5453d12d2a1c6de803292f3a73e8ab1604949302");
-		var requestOptions = {
-			method: 'GET',
-			headers: myHeaders,
-			redirect: 'follow'
-		};
-	  try {
-	    let response = await fetch(
-	      characterSingleApiUrl,
-				requestOptions
-	    );
-	    let jsonResponse = await response.json();
-			let singleCharacterData = await jsonResponse.data;
-      let mappedElementC = {};
-      mappedElementC.id = await singleCharacterData.id;
-      let mappedElementName = {};
-      mappedElementName.canonicalName =  await singleCharacterData.attributes.canonicalName;
-      mappedElementName.en = await singleCharacterData.attributes.names.en;
-      mappedElementName.ja_jp = await singleCharacterData.attributes.names.ja_jp;
-      mappedElementName.name = await singleCharacterData.attributes.name;
-      mappedElementC.names = await mappedElementName;
-	    return mappedElementC;
-	  } catch (error) {
-	    console.error(error);
-	  }
-	};
   const onRefresh = () => {
     setIsRefreshing(true);
     mockApi();
