@@ -77,6 +77,7 @@ const Home = (props) => {
 	const renderItem = ({ item }) => (
 		<SerieDisplayPureComponent displayImage={item.mediumImage} titleEn={item.attr.titles.en} titleEnJp={item.attr.titles.en_jp} titleJa={item.attr.titles.ja_jp} onPress={() => onSeriesSelected(item)} disabledTouch={loading}/>
   );
+
   const onSeriesSelected = (itemData) => {
 		setLoading(true);
     console.log("id ",itemData.id);
@@ -133,7 +134,6 @@ const Home = (props) => {
 				  </TouchableOpacity>
 				</View>
 			</View>
-
 			<View style={{...styles.bodyContainer,width:dimensions.window.width,height:dimensions.window.height*0.9}}>
 				<ScrollView style={{flex:1}}>
 					<View style={{flex:1, backgroundColor:"transparent"}}>
@@ -175,9 +175,6 @@ const styles = StyleSheet.create({
 		marginVertical:20,
 		marginHorizontal:10,
 	}
-
-
-
 });
 
 export default Home;

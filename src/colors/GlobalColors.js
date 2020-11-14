@@ -6,7 +6,7 @@ const GlobalColors = {
   AnalogousColor: '#547a73',
   AnalogousSecondaryColor: '#545b7a',
   TriadicColor: '#60547a',
-  TriadicSecondaryColor: '##7a546e',
+  TriadicSecondaryColor: '#7a546e',
   SecondaryColor: '#263238',
   LetterColor:"white"
 
