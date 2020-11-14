@@ -40,8 +40,8 @@ const Init = () => {
     if(count < 3){
       apiCon();
     } else {
-    	setLoading(false);
-			Actions.home({dataApi:dataPrev, nextLink: apiURL});
+    	//setLoading(false);
+			//Actions.home({dataApi:dataPrev, nextLink: apiURL});
     }
 	},[dataPrev]);
 
@@ -61,7 +61,7 @@ const Init = () => {
     <View style={styles.container}>
 			<View style={styles.containerUpper}>
 				<View style={styles.containerTitle}>
-					<Text>
+					<Text style={styles.title}>
 						Coding Challenge Project
 					</Text>
 				</View>
@@ -76,7 +76,7 @@ const Init = () => {
 				</View>
 			</View>
 			<View style={styles.containerLoading}>
-				<ActivityIndicator visible={loading} size='large' color={GlobalColors.SecondaryColor}/>
+				<ActivityIndicator visible={loading} size={100} color={GlobalColors.ComplementaryColor}/>
 			</View>
     </View>
   );
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
 	},
 	containerTitle: {
 		backgroundColor: "transparent",
-		flex: 1,
+		flex: 2,
 		alignItems:'center',
     justifyContent:'center',
 	},
@@ -111,6 +111,11 @@ const styles = StyleSheet.create({
 		alignItems:'center',
     justifyContent:'center',
 	},
+	title: {
+		color:GlobalColors.LetterColor,
+		fontSize:50,
+		fontFamily:"Dosis-Bold"
+	}
 });
 
 export default Init;
