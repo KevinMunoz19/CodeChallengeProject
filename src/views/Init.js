@@ -40,17 +40,15 @@ const Init = () => {
     if(count < 3){
       apiCon();
     } else {
-    	//setLoading(false);
-			//Actions.home({dataApi:dataPrev, nextLink: apiURL});
+    	setLoading(false);
+			Actions.home({dataApi:dataPrev, nextLink: apiURL});
     }
 	},[dataPrev]);
 
 	// Call API, wait for result andcombine it with previous data. Add 1 to counter.
 	const apiCon = () => {
     getFromApiAsync(apiURL,"series").then(response => {
-			console.log("response ",response.length)
 			var newUrl = response.pop();
-			console.log("response ",response.length)
 			setApiURL(newUrl);
       setCount(count+1);
       setDataPrev([...dataPrev, ...response])

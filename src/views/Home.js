@@ -11,11 +11,13 @@ import {
   Alert,
 	Dimensions,
 	FlatList,
+	ScrollView
 }	from 'react-native';
 import useApiKitsu from './../utils/useApiKitsu';
 import GlobalColors from '../colors/GlobalColors';
 import SerieDisplay from '../components/SerieDisplay';
 import SerieDisplayPureComponent from '../components/SerieDisplayPureComponent';
+import Icon from "react-native-vector-icons/MaterialIcons";
 const window = Dimensions.get("window");
 const screen = Dimensions.get("screen");
 
@@ -37,6 +39,7 @@ const Home = (props) => {
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
   };
+
   useEffect(() => {
     Dimensions.addEventListener("change", onChange);
     return () => {
@@ -80,28 +83,21 @@ const Home = (props) => {
 		getFromApiAsync(itemData.attr.genres, "genres").then(response =>{
 			response.pop();
 			itemData.attr.genresList= [...response];
-			//setSingleSerieToDetail(itemData);
 			console.log("resp ",response)
 			console.log("then genres")
-
 			getFromApiAsync(itemData.episodes.episodeListLink,"episodeList").then(response =>{
 				response.pop();
 				console.log("resp ep ",response)
 				itemData.episodes.episodesList= [...response];
-				//Actions.details({singleSerie: itemData });
-
 				getFromApiAsync(itemData.characters.characterListLink,"characterList").then(response =>{
 					response.pop();
 					console.log("resp char lst ",response)
 					itemData.characters.charactersList= [...response];
 					setCharList([...response]);
 					setSingleSerieToDetail(itemData);
-					//Actions.details({singleSerie: itemData });
 				})
 			})
 		})
-
-		//Actions.details({singleSerie: itemData });
   }
 
   const onRefresh = () => {
@@ -115,78 +111,73 @@ const Home = (props) => {
 		},3000);
   }
 
+	const goToSearch = () => {
+		Actions.search();
+	}
+
   return (
     <View style={styles.container}>
-			<FlatList
-				data={dataFL}
-				renderItem={renderItem}
-				keyExtractor={item => item.id}
-				horizontal={true}
-				showsVerticalScrollIndicator ={false}
-				showsHorizontalScrollIndicator={false}
-			/>
+			<View style={{...styles.headerContainer,width:dimensions.window.width,height:dimensions.window.height*0.1}}>
+				<View style={{flex:1, backgroundColor:"transparent", alignItems:"center", justifyContent:"center"}}>
+					<Image
+						source={require('../images/applaudo_logo.png')}
+						style={{
+							height:dimensions.window.height*0.08,
+							width:dimensions.window.height*0.08,
+						}}
+					/>
+				</View>
+				<View style={{flex:3, backgroundColor:"transparent", justifyContent:"center", alignItems:"flex-end", padding:10}}>
+					<TouchableOpacity onPress={goToSearch}>
+				    <Icon name="search" color={"white"} size={dimensions.window.height*0.05}/>
+				  </TouchableOpacity>
+				</View>
+			</View>
 
+			<View style={{...styles.bodyContainer,width:dimensions.window.width,height:dimensions.window.height*0.9}}>
+				<ScrollView style={{flex:1}}>
+					<View style={{flex:1, backgroundColor:"transparent"}}>
+						<Text style={styles.flatListTitle}>
+							Anime
+						</Text>
+						<FlatList
+							data={dataFL}
+							renderItem={renderItem}
+							keyExtractor={item => item.id}
+							horizontal={true}
+							showsVerticalScrollIndicator ={false}
+							showsHorizontalScrollIndicator={false}
+						/>
+					</View>
+				</ScrollView>
+			</View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-	textHeader:{
-    color:"blue",
-		paddingLeft:"8%",
-  },
-	item: {
-    backgroundColor: '#f9c2ff',
-    height:250,
-    padding:5,
-  },
-  title: {
-    fontSize: 32,
-  },
-  tinyLogo: {
-    width: 150,
-    height: 150,
-  },
 	container: {
-		backgroundColor: "transparent",
-		flex: 1
+		backgroundColor: GlobalColors.PrimaryColor,
+		flex: 1,
 	},
-  scrollView: {
-    backgroundColor: "black",
-  },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: "white",
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: "black",
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: "pink",
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: "blue",
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
+	headerContainer: {
+		backgroundColor: GlobalColors.SecondaryColor,
+		flexDirection:"row",
+	},
+	bodyContainer: {
+		backgroundColor: "transparent",
+		padding:8,
+	},
+	flatListTitle: {
+		color:GlobalColors.LetterColor,
+		fontSize:30,
+		fontFamily:"Dosis-Regular",
+		marginVertical:20,
+		marginHorizontal:10,
+	}
+
+
+
 });
 
 export default Home;
