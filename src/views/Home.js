@@ -11,10 +11,14 @@ import {
   Alert,
 	Dimensions,
 	FlatList,
+	ScrollView,
+	BackHandler,
 }	from 'react-native';
 import useApiKitsu from './../utils/useApiKitsu';
 import GlobalColors from '../colors/GlobalColors';
 import SerieDisplay from '../components/SerieDisplay';
+import SerieDisplayPureComponent from '../components/SerieDisplayPureComponent';
+import Icon from "react-native-vector-icons/MaterialIcons";
 const window = Dimensions.get("window");
 const screen = Dimensions.get("screen");
 
@@ -22,13 +26,29 @@ const Home = (props) => {
   const [loading,setLoading] = useState(false);
 	const [dimensions, setDimensions] = useState({ window, screen });
 	const [dataFL,setDataFL] = useState([]);
+	const [dataFLPopular,setDataFLPopular] = useState([]);
+	const [dataFLRating,setDataFLRating] = useState([]);
   const [isRefreshing,setIsRefreshing] = useState(false);
 	const [apiURL,setApiURL] = useState("");
-	const {getAnimeData} = useApiKitsu();
+	const {getAnimeData,getFromApiAsync} = useApiKitsu();
+
+	const [serieGenres,setSerieGenres] = useState([]);
+	const [serieEpisodes,setSerieEpisodes] = useState([]);
+	const [singleSerieToDetail,setSingleSerieToDetail] = useState({});
+	const [charList,setCharList] = useState([]);
+	const [singleCharList,setSingleCharList] = useState([]);
+	const [counter,setCounter] = useState(0);
+
+	useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', () => true)
+    return () =>
+      BackHandler.removeEventListener('hardwareBackPress', () => true)
+  }, [])
 
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
   };
+
   useEffect(() => {
     Dimensions.addEventListener("change", onChange);
     return () => {
@@ -36,154 +56,185 @@ const Home = (props) => {
     };
   });
 
+	useEffect(() => {
+    if(charList.length != 0){
+			if(counter < charList.length){
+				var urlActual = charList[counter].singleCharacterLink;
+				getFromApiAsync(urlActual,"singleCharacter").then(response => {
+					if (response.length != 0){
+						setSingleCharList([...singleCharList,response]);
+						setCounter(counter+1);
+					} else {
+						Alert.alert("Sorry, ","We could not retrieve the data for characters")
+						setLoading(false);
+					}
+				});
+			}
+			if (counter==charList.length){
+				var singleSerieToDetailUpdated = singleSerieToDetail;
+				singleSerieToDetailUpdated.characters.singleCharacterList = [...singleCharList]
+				Actions.details({singleSerie: singleSerieToDetailUpdated });
+				setCharList([]);
+				setCounter(0);
+				setSingleCharList([]);
+				setLoading(false);
+			}
+		}
+  },[charList,counter]);
+
+	// Save API URL for next data page (paginated data, 20 records) and series data passed from init view (Action props).
 	useEffect(()=>{
 		setApiURL(props.nextLink);
 		setDataFL([ ...dataFL, ...props.dataApi]);
+		setDataFLPopular([ ...dataFLPopular, ...props.dataApiPopular]);
+		setDataFLRating([ ...dataFLRating, ...props.dataApiRating]);
 	},[]);
 
-	const getFromApi = () => {
-    getAnimeData(apiURL,(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let seriesData = jsonResponse.data;
-      console.log("Numero de series ",seriesData.length);
-      setApiURL(jsonResponse.links.next);
-      var arrayRecoveredData = seriesData.map(function(element){
-				var mappedElement = {};
-				mappedElement.id = element.id;
-				mappedElement.type = element.type;
-				mappedElement.mediumImage = element.attributes.posterImage.medium;
-				var mappedElementAttributes = {};
-				mappedElementAttributes.synopsis = element.attributes.synopsis;
-				mappedElementAttributes.description = element.attributes.description;
-				mappedElementAttributes.averageRating = element.attributes.averageRating;
-				mappedElementAttributes.youtubeVideoId = element.attributes.youtubeVideoId;
-				mappedElementAttributes.genres = element.relationships.genres.links.related;
-				var mappedElementTitles = {};
-				mappedElementTitles.canonicalTitle = element.attributes.canonicalTitle;
-				mappedElementTitles.en = element.attributes.titles.en;
-				mappedElementTitles.en_jp = element.attributes.titles.en_jp;
-				mappedElementTitles.ja_jp = element.attributes.titles.ja_jp;
-				mappedElementAttributes.titles = mappedElementTitles;
-				mappedElement.attr = mappedElementAttributes;
-				var mappedElementDates = {};
-				mappedElementDates.startDate = element.attributes.startDate;
-				mappedElementDates.endDate = element.attributes.endDate;
-				mappedElementDates.status = element.attributes.status;
-				mappedElementDates.nextRelease = element.attributes.nextRelease;
-				mappedElement.dates = mappedElementDates;
-				var mappedElementEpisodes = {};
-				mappedElementEpisodes.count = element.attributes.episodeCount;
-				mappedElementEpisodes.episodeLength = element.attributes.episodeLength;
-				mappedElementEpisodes.episodeListLink = element.relationships.episodes.links.related;
-				mappedElement.episodes = mappedElementEpisodes;
-				var mappedElementRating = {};
-				mappedElementRating.ageRating = element.attributes.ageRating;
-				mappedElementRating.ageRatingGuide = element.attributes.ageRatingGuide;
-				mappedElement.rating = mappedElementRating;
-				var mappedElementCharacters = {};
-				mappedElementCharacters.characterListLink = element.relationships.characters.links.related;
-				mappedElement.characters = mappedElementCharacters;
-				return mappedElement;
-      });
-      setDataFL([ ...dataFL, ...arrayRecoveredData ]);
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
-    });
-  }
 	const renderItem = ({ item }) => (
-    <SerieDisplay itemData={item} onPress={() => onSeriesSelected(item)}/>
+		<SerieDisplayPureComponent displayImage={item.mediumImage} titleEn={item.attr.titles.en} titleEnJp={item.attr.titles.en_jp} titleJa={item.attr.titles.ja_jp} onPress={() => onSeriesSelected(item)} disabledTouch={loading}/>
   );
+
   const onSeriesSelected = (itemData) => {
-    console.log("id ",itemData.id);
-		Actions.details({singleSerie: itemData });
+		setLoading(true);
+		getFromApiAsync(itemData.attr.genres, "genres").then(response =>{
+			if (response.length != 0){
+				response.pop();
+				itemData.attr.genresList= [...response];
+				getFromApiAsync(itemData.episodes.episodeListLink,"episodeList").then(response =>{
+					if (response.length != 0){
+						response.pop();
+						itemData.episodes.episodesList= [...response];
+						getFromApiAsync(itemData.characters.characterListLink,"characterList").then(response =>{
+							if (response.length != 0){
+								response.pop();
+								itemData.characters.charactersList= [...response];
+								setCharList([...response]);
+								setSingleSerieToDetail(itemData);
+							} else {
+								Alert.alert("Sorry, ","We could not retrieve the data for characters")
+								setLoading(false);
+							}
+						})
+					} else {
+						Alert.alert("Sorry, ","We could not retrieve the data for episodes")
+						setLoading(false);
+					}
+				})
+			} else {
+				Alert.alert("Sorry, ","We could not retrieve the data for genres")
+				setLoading(false);
+			}
+		})
   }
+
   const onRefresh = () => {
     setIsRefreshing(true);
     mockApi();
  }
   const mockApi = () => {
     setTimeout(()=>{
-      getFromApi();
+      //getFromApi();
 			setIsRefreshing(false);
 		},3000);
   }
 
+	const goToSearch = () => {
+		Actions.search();
+	}
+
   return (
     <View style={styles.container}>
-			<FlatList
-				data={dataFL}
-				renderItem={renderItem}
-				keyExtractor={item => item.id}
-				horizontal={true}
-				showsVerticalScrollIndicator ={false}
-				showsHorizontalScrollIndicator={false}
-				onRefresh={onRefresh}
-				refreshing={isRefreshing}
-				onEndReachedThreshold={0.1}
-				onEndReached={({ distanceFromEnd }) => {
-					if(distanceFromEnd >= 0) {
-						console.log("end reached");
-						onRefresh();
-					}
-				}}
-			/>
+			<View style={{...styles.headerContainer,width:dimensions.window.width,height:dimensions.window.height*0.1}}>
+				<View style={{flex:1, backgroundColor:"transparent", alignItems:"center", justifyContent:"center"}}>
+					<Image
+						source={require('../images/applaudo_logo.png')}
+						style={{
+							height:dimensions.window.height*0.08,
+							width:dimensions.window.height*0.08,
+						}}
+					/>
+				</View>
+				<View style={{flex:3, backgroundColor:"transparent", justifyContent:"center", alignItems:"flex-end", padding:10}}>
+					<TouchableOpacity onPress={goToSearch}>
+				    <Icon name="search" color={"white"} size={dimensions.window.height*0.05}/>
+				  </TouchableOpacity>
+				</View>
+			</View>
+			<View style={{...styles.bodyContainer,width:dimensions.window.width,height:dimensions.window.height*0.9}}>
+
+				<ScrollView style={{flex:1}}>
+					<View style={{flex:1, backgroundColor:"transparent"}}>
+						<Text style={styles.flatListTitle}>
+							Anime
+						</Text>
+						<FlatList
+							data={dataFL}
+							renderItem={renderItem}
+							keyExtractor={item => item.id}
+							horizontal={true}
+							showsVerticalScrollIndicator ={false}
+							showsHorizontalScrollIndicator={false}
+						/>
+					</View>
+
+					<View style={{flex:1, backgroundColor:"transparent"}}>
+						<Text style={styles.flatListTitle}>
+							Most Popular
+						</Text>
+						<FlatList
+							data={dataFLPopular}
+							renderItem={renderItem}
+							keyExtractor={item => item.id}
+							horizontal={true}
+							showsVerticalScrollIndicator ={false}
+							showsHorizontalScrollIndicator={false}
+						/>
+					</View>
+
+					<View style={{flex:1, backgroundColor:"transparent"}}>
+						<Text style={styles.flatListTitle}>
+							Best Rating
+						</Text>
+						<FlatList
+							data={dataFLRating}
+							renderItem={renderItem}
+							keyExtractor={item => item.id}
+							horizontal={true}
+							showsVerticalScrollIndicator ={false}
+							showsHorizontalScrollIndicator={false}
+						/>
+					</View>
+				</ScrollView>
+				{(loading)&&(
+					<ActivityIndicator visible={loading} size={100} color={GlobalColors.ComplementaryColor} style={{position:"absolute"}}/>
+				)}
+			</View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-	item: {
-    backgroundColor: '#f9c2ff',
-    height:250,
-    padding:5,
-  },
-  title: {
-    fontSize: 32,
-  },
-  tinyLogo: {
-    width: 150,
-    height: 150,
-  },
 	container: {
-		backgroundColor: "transparent",
-		flex: 1
+		backgroundColor: GlobalColors.PrimaryColor,
+		flex: 1,
 	},
-  scrollView: {
-    backgroundColor: "black",
-  },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: "white",
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: "black",
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: "pink",
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: "blue",
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
+	headerContainer: {
+		backgroundColor: GlobalColors.SecondaryColor,
+		flexDirection:"row",
+	},
+	bodyContainer: {
+		backgroundColor: "transparent",
+		padding:8,
+		justifyContent:"center",
+		alignItems:"center",
+	},
+	flatListTitle: {
+		color:GlobalColors.LetterColor,
+		fontSize:30,
+		fontFamily:"Dosis-Regular",
+		marginVertical:20,
+		marginHorizontal:10,
+	}
 });
 
 export default Home;

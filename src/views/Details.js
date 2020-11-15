@@ -9,9 +9,20 @@ import {
 	ImageBackground,
 	ActivityIndicator,
   Alert,
+	ScrollView,
+	Dimensions,
+	Modal,
+	TouchableHighlight,
+	FlatList,
+	Linking,
+	PixelRatio,
+	BackHandler,
 }	from 'react-native';
+import Icon from "react-native-vector-icons/MaterialIcons";
+const window = Dimensions.get("window");
+const screen = Dimensions.get("screen");
 import useApiKitsu from './../utils/useApiKitsu';
-
+import GlobalColors from '../colors/GlobalColors';
 
 const Details = (props) => {
 
@@ -22,196 +33,342 @@ const Details = (props) => {
 	const [charList,setCharList] = useState([]);
 	const [counter,setCounter] = useState(0);
 	const {getAnimeData} = useApiKitsu();
+	const [dimensions, setDimensions] = useState({ window, screen });
+	const [renderMult,setRenderMult] = useState(["AAAAA","BBBBB","CCCCC","AAAAA","BBBBB","CCCCC","AAAAA","BBBBB","CCCCC"]);
+	const [renderMultObj,setRenderMultObj] = useState([{"id":"1","name":"AAA"},{"id":"2","name":"BBB"},{"id":"3","name":"CCC"},{"id":"4","name":"AAA"},{"id":"5","name":"BBB"},{"id":"6","name":"CCC"},{"id":"7","name":"CCC"},{"id":"8","name":"CCC"},{"id":"9","name":"CCC"},{"id":"10","name":"CCC"}]);
+	const [characterModalVisible, setCharacterModalVisible] = useState(false);
+	const [episodeModalVisible, setEpisodeModalVisible] = useState(false);
+	const [renderMultObjEp,setRenderMultObjEp] = useState([{"id":"1","name":"AAA"},{"id":"2","name":"BBB"},{"id":"3","name":"CCC"},{"id":"4","name":"AAA"},{"id":"5","name":"BBB"},{"id":"6","name":"CCC"},{"id":"7","name":"CCC"},{"id":"8","name":"CCC"},{"id":"9","name":"CCC"},{"id":"10","name":"CCC"}]);
+	const [modalFlToRender,setModalFlToRender] = useState("");
+	const [modalTitleToRender,setModalTitleToRender] = useState("");
+	const [responsiveFontSize,setResponsiveFontSize] = useState({});
 
+	// Set fonts size based on orientation change.
+	const onChange = ({ window, screen }) => {
+		console.log("onChange")
+    setDimensions({ window, screen });
+			const scale = dimensions.window.height / 300;
+			var typeScale = {};
+			typeScale.headline1 = Math.round(PixelRatio.roundToNearestPixel(60*scale));
+			typeScale.headline2 = Math.round(PixelRatio.roundToNearestPixel(40*scale));
+			typeScale.headline3 = Math.round(PixelRatio.roundToNearestPixel(20*scale));
+			typeScale.subtitle1 = Math.round(PixelRatio.roundToNearestPixel(16*scale));
+			typeScale.body1 = Math.round(PixelRatio.roundToNearestPixel(14*scale));
+			typeScale.button1 = Math.round(PixelRatio.roundToNearestPixel(10*scale));
+			setResponsiveFontSize(typeScale);
+  };
+
+	BackHandler.addEventListener('hardwareBackPress', function() {
+		Actions.pop();
+		return true;
+	});
+
+	useEffect(() => {
+    Dimensions.addEventListener("change", onChange);
+    return () => {
+      Dimensions.removeEventListener("change", onChange);
+    };
+  });
+
+	// Set initial fonts size based on actual dimensions. Set scale based on actual dimensions.
   useEffect(()=>{
-		//console.log("Objeto en details view "+JSON.stringify(props.singleSerie));
-		var serieDetailsObj = props.singleSerie;
-		//getGenresFromApi(serieDetailsObj.attr.genres);
-    //getEpisodesFromApi(serieDetailsObj.episodes.episodeListLink);
-    getCharacterListFromApi(serieDetailsObj.characters.characterListLink);
+		var scale = 0.0;
+		if(dimensions.window.width>dimensions.window.height){
+			scale = dimensions.window.height / 300;
+		}else{
+			scale = dimensions.window.width / 300;
+		}
+		var typeScale = {};
+		typeScale.headline1 = Math.round(PixelRatio.roundToNearestPixel(60*scale));
+		typeScale.headline2 = Math.round(PixelRatio.roundToNearestPixel(40*scale));
+		typeScale.headline3 = Math.round(PixelRatio.roundToNearestPixel(20*scale));
+		typeScale.subtitle1 = Math.round(PixelRatio.roundToNearestPixel(16*scale));
+		typeScale.body1 = Math.round(PixelRatio.roundToNearestPixel(14*scale));
+		typeScale.button1 = Math.round(PixelRatio.roundToNearestPixel(10*scale));
+		setResponsiveFontSize(typeScale);
 	},[]);
 
+	// set state variables (arrays) with serie info passed from home view.
 	useEffect(()=>{
-		if(serieGenres.length != 0){
-			console.log("entrada use effect genres change",serieGenres);
-		}
-	},[serieEpisodes]);
-	useEffect(()=>{
-		if(serieEpisodes.length != 0){
-			console.log("entrada use effect serieEpisodes change",serieEpisodes);
-		}
-	},[serieEpisodes]);
-	useEffect(()=>{
-		if(charList.length != 0){
-			if(counter < charList.length){
-				var urlActual = charList[counter].singleCharacterLink;
-				getMoviesFromApiAsync(urlActual).then(response => {
-					setSerieCharacters([...serieCharacters,response]);
-					setCounter(counter+1);
-				});
-			}
-			//setCounter(counter+1);
+		//console.log("listado de genres ",props.singleSerie.attr.genresList);
+		setSerieGenres([...props.singleSerie.attr.genresList]);
+		//console.log("listado de episodios ",props.singleSerie.episodes.episodesList);
+		setSerieEpisodes([...props.singleSerie.episodes.episodesList]);
+		//console.log("listado de characters ",props.singleSerie.characters.singleCharacterList);
+		setSerieCharacters([...props.singleSerie.characters.singleCharacterList]);
+	},[]);
 
+	const renderItemChar = ({ item }) => (
+		<View style={{backgroundColor:GlobalColors.AnalogousSecondaryColor,borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light" ,paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.names.name)}</Text>
+		</View>
+  );
 
-
-
-		}
-	},[charList,counter]);
-
-	const getGenresFromApi = (genresApiUrl) => {
-    getAnimeData(genresApiUrl,(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let genresData = jsonResponse.data;
-      var arrayRecoveredData = genresData.map(function(element){
-         var mappedElement = {};
-         mappedElement.id = element.id;
-         mappedElement.name = element.attributes.name;
-         return mappedElement;
-      });
-			setSerieGenres([...arrayRecoveredData]);
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
-    });
-  }
-	const getEpisodesFromApi = (episodesApiUrl) => {
-    getAnimeData(episodesApiUrl,(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let episodesData = jsonResponse.data;
-      let episodesLinks = jsonResponse.links;
-      var arrayRecoveredData = episodesData.map(function(element){
-         var mappedElement = {};
-         mappedElement.id = element.id;
-         var mappedElementTitles = {};
-         mappedElementTitles.canonicalTitle = element.attributes.canonicalTitle;
-         mappedElementTitles.en_us = element.attributes.titles.en_us;
-         mappedElementTitles.en_jp = element.attributes.titles.en_jp;
-         mappedElementTitles.ja_jp = element.attributes.titles.ja_jp;
-         mappedElement.titles = mappedElementTitles;
-         mappedElement.seasonNumber = element.attributes.seasonNumber;
-         mappedElement.number = element.attributes.number;
-         mappedElement.airdate = element.attributes.airdate;
-         return mappedElement;
-      });
-			setSerieEpisodes([...arrayRecoveredData]);
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
-    });
-  }
-	const getCharacterListFromApi = (charactersApiUrl) => {
-    getAnimeData(charactersApiUrl,(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let characterData = jsonResponse.data;
-      var arrayRecoveredData = characterData.map(function(element){
-         var mappedElement = {};
-         mappedElement.id = element.id;
-         mappedElement.singleCharacterLink = element.relationships.character.links.related;
-         return mappedElement;
-      });
-			setCharList([...arrayRecoveredData])
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
-    });
-  }
-
-
-	const getMoviesFromApiAsync = async (apiUrl) => {
-		console.log("Entrada Async");
-		console.log("Entrada Async url ",apiUrl);
-		var myHeaders = new Headers();
-		myHeaders.append("Accept", "application/vnd.api+json");
-		myHeaders.append("Content-Type", "application/vnd.api+json");
-		myHeaders.append("Cookie", "__cfduid=d5f5453d12d2a1c6de803292f3a73e8ab1604949302");
-		var requestOptions = {
-			method: 'GET',
-			headers: myHeaders,
-			redirect: 'follow'
-		};
-	  try {
-	    let response = await fetch(
-	      apiUrl,
-				requestOptions
-	    );
-	    let jsonResponse = await response.json();
-			let singleCharacterData = await jsonResponse.data;
-      let mappedElementC = {};
-      mappedElementC.id = await singleCharacterData.id;
-      let mappedElementName = {};
-      mappedElementName.canonicalName =  await singleCharacterData.attributes.canonicalName;
-      mappedElementName.en = await singleCharacterData.attributes.names.en;
-      mappedElementName.ja_jp = await singleCharacterData.attributes.names.ja_jp;
-      mappedElementName.name = await singleCharacterData.attributes.name;
-      mappedElementC.names = await mappedElementName;
-	    return mappedElementC;
-	  } catch (error) {
-	    console.error(error);
-	  }
-	};
-
-// 	const getMoviesFromApiAsync = async () => {
-//   try {
-//     let response = await fetch(
-//       'https://reactnative.dev/movies.json'
-//     );
-//     let json = await response.json();
-// 		setSerieCharacters([...serieCharacters,json]);
-//     return json;
-//   } catch (error) {
-//     console.error(error);
-//   }
-// };
-
-
-
-
-  const getSingleCharacterFromApi = (singleCharacterApiUrl) => {
-		console.log(singleCharacterApiUrl)
-    getAnimeData(singleCharacterApiUrl,(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let singleCharacterData = jsonResponse.data;
-      let mappedElementC = {};
-      mappedElementC.id = singleCharacterData.id;
-      let mappedElementName = {};
-      mappedElementName.canonicalName = singleCharacterData.attributes.canonicalName;
-      mappedElementName.en = singleCharacterData.attributes.names.en;
-      mappedElementName.ja_jp = singleCharacterData.attributes.names.ja_jp;
-      mappedElementName.name = singleCharacterData.attributes.name;
-      mappedElementC.names = mappedElementName;
-      let arrayToInsert = [];
-      arrayToInsert.push(mappedElementC);
-      setSerieCharacters([...serieCharacters, arrayToInsert])
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
-    });
-  }
-
-	const showChar = () => {
-
-		console.log("chars ",serieCharacters);
-	}
+	const renderItemEp = ({ item }) => (
+		<View style={{backgroundColor:GlobalColors.AnalogousSecondaryColor,borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.titles.canonicalTitle)}</Text>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>S{(item.seasonNumber)} Ep{(item.number)}</Text>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.airdate)?(item.airdate).split("-").reverse().join("-"):"-"}</Text>
+		</View>
+  );
 
   return (
-    <View style={styles.container}>
-      {!loading && (
-        <View style={styles.textHeaderContainer}>
-          <Text style={{ ...styles.textHeader, fontSize:30}} allowFontScaling={false}>Details</Text>
-        </View>
-      )}
-      {!loading && (
-        <React.Fragment>
-          <View style={styles.imageContainer}>
+		<View style={styles.container}>
+			<Modal
+				animationType="slide"
+				transparent={true}
+				visible={characterModalVisible}
+				onBackdropPress={() => setCharacterModalVisible(false)}
+				onRequestClose={() => setCharacterModalVisible(false)}
+			>
+				<View style={styles.centeredView}>
+					<View style={styles.modalView}>
+						<TouchableHighlight
+							style={{ ...styles.openButton }}
+							onPress={() => { setCharacterModalVisible(false) }}
+						>
+							<Text style={{...styles.textStyle,fontSize:responsiveFontSize.button1, fontFamily:"Dosis-Medium"}}>Close</Text>
+						</TouchableHighlight>
+						<Text style={{...styles.modalText,fontSize:responsiveFontSize.headline3, fontFamily:"Dosis-Medium"}}>Series Characters</Text>
+							<FlatList
+								data={serieCharacters}
+								renderItem={renderItemChar}
+								keyExtractor={item => item.id}
+								horizontal={true}
+								showsVerticalScrollIndicator ={false}
+								showsHorizontalScrollIndicator={false}
+							/>
+					</View>
+				</View>
+			</Modal>
+			<Modal
+				animationType="slide"
+				transparent={true}
+				visible={episodeModalVisible}
+				onBackdropPress={() => setEpisodeModalVisible(false)}
+				onRequestClose={() => setEpisodeModalVisible(false)}
+			>
+				<View style={styles.centeredView}>
+					<View style={styles.modalView}>
+						<TouchableHighlight
+							style={{ ...styles.openButton }}
+							onPress={() => { setEpisodeModalVisible(false) }}
+						>
+							<Text style={{...styles.textStyle,fontSize:responsiveFontSize.button1, fontFamily:"Dosis-Medium"}}>Close</Text>
+						</TouchableHighlight>
+						<Text style={{...styles.modalText,fontSize:responsiveFontSize.headline3, fontFamily:"Dosis-Medium"}}>Series First Episodes</Text>
+							<FlatList
+								data={serieEpisodes}
+								renderItem={renderItemEp}
+								keyExtractor={item => item.id}
+								horizontal={true}
+								showsVerticalScrollIndicator ={false}
+								showsHorizontalScrollIndicator={false}
+							/>
+					</View>
+				</View>
+			</Modal>
 
-          </View>
-          <TouchableOpacity style={styles.sendButton} onPress={showChar}>
-            <Text style={{color:"black", textAlign:'center', fontSize:25}} allowFontScaling={false}>Iniciar Sesion</Text>
-          </TouchableOpacity>
-        </React.Fragment>
-      )}
-			<Text style={{color:"black", textAlign:'center', fontSize:25}} allowFontScaling={false}>AAA</Text>
-    </View>
+      <ScrollView style={styles.scroll}>
+				{/*	Image and basic info container*/}
+	      <View style={{...styles.topContainer,height:(dimensions.window.height > dimensions.window.width)?(dimensions.window.height*0.4):(dimensions.window.height*1.2), flexDirection:"row", width:dimensions.window.width}}>
+					{/*	Image container with play button in top right button. TouchableOpacity for image.*/}
+	        <View style={{width:(dimensions.window.width*0.4), justifyContent:"center", alignItems:"center"}}>
+						<TouchableOpacity style={{ width:"95%", height:"95%",borderColor:"black", borderWidth:3, borderRadius:6}} onPress={() => Linking.openURL(`http://www.youtube.com/watch?v=${props.singleSerie.attr.youtubeVideoId}`)}>
+							<ImageBackground
+								style={{width:"100%", height:"100%"}}
+								source={{uri:props.singleSerie.mediumImage}}
+							>
+								<Icon name="play-arrow" color={GlobalColors.LetterColor} size={responsiveFontSize.headline2} style={{...styles.headerIcon,position:"absolute", right:"5%"}} />
+							</ImageBackground>
+						</TouchableOpacity>
+	        </View>
+					{/*	Info container next to image container. */}
+	        <View style={{flex:3,flexDirection:"column"}}>
+	          <View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
+	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.headline3, fontFamily:"Dosis-Medium"}} allowFontScaling={false}>{(props.singleSerie.attr.titles.en)?(props.singleSerie.attr.titles.en):(props.singleSerie.attr.titles.en_jp)?(props.singleSerie.attr.titles.en_jp):(props.singleSerie.attr.titles.ja_jp)}</Text>
+	          </View>
+	          <View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
+	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.attr.titles.canonicalTitle}</Text>
+	          </View>
+						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"center"}}>
+							<TouchableOpacity style={{...styles.playButton}} onPress={() => { setCharacterModalVisible(true)}}>
+								<Icon name="face" color={GlobalColors.LetterColor} size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
+								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Characters</Text>
+							</TouchableOpacity>
+							{(props.singleSerie.attr.subtype != "movie")&&(
+								<TouchableOpacity style={{...styles.playButton}} onPress={() => { setEpisodeModalVisible(true)}}>
+									<Icon name="subscriptions" color={GlobalColors.LetterColor} size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
+									<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Episodes</Text>
+								</TouchableOpacity>
+							)}
+	          </View>
+						<View style={{...styles.textHeaderContainer,flex:0.5,backgroundColor:"transparent",flexDirection:"row"}}>
+							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"flex-start"}}>
+		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{props.singleSerie.type}</Text>
+		          </View>
+							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"flex-start"}}>
+		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.attr.subtype == "movie")?(""):(`${props.singleSerie.episodes.count} episodes`)}</Text>
+		          </View>
+	          </View>
+						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
+	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.dates.startDate).split("-").reverse().join("-")}{(props.singleSerie.attr.subtype == "movie")?(" Release date"):(` to ${(props.singleSerie.dates.startDate).split("-").reverse().join("-")}`)}</Text>
+	          </View>
+	        </View>
+	      </View>
+				{/*	Bottom info container*/}
+	      <View style={{...styles.topContainer,height:(dimensions.window.height > dimensions.window.width)?(dimensions.window.height*0.40):(dimensions.window.height*0.8)}}>
+					<View style={{flex:3,flexDirection:"column"}}>
+						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
+							<Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, fontFamily:"Dosis-Medium"}} allowFontScaling={false}>Genres</Text>
+						</View>
+						<View style={{...styles.textHeaderContainer,flex:3,backgroundColor:"transparent",flexDirection:"row",width:"100%",flexWrap:"wrap",justifyContent:"center"}}>
+						{serieGenres.map((usr)=>{
+							try{
+									return(
+										<View style={{backgroundColor:GlobalColors.TriadicColor,borderRadius:30,marginHorizontal:20,marginVertical:10, padding:3}} key={usr.id}>
+											<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,paddingLeft:0,padding:4, fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{usr.name}</Text>
+										</View>
+									)
+							} catch(ex) {
+							}
+						})}
+						</View>
+						<View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"transparent",flexDirection:"row"}}>
+							<View style={{...styles.textHeaderContainer,flex:0.5,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"center"}}>
+								<Icon name="star" color="yellow" size={responsiveFontSize.headline3} style={{...styles.headerIcon}} />
+		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.headline3,fontFamily:"Dosis-Medium"}} allowFontScaling={false}>{((props.singleSerie.attr.averageRating)/20).toFixed(1)}</Text>
+		          </View>
+							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"center",height:"70%"}}>
+								<View style={{...styles.textHeaderContainer,backgroundColor:GlobalColors.TriadicSecondaryColor,flexDirection:"column",justifyItems:"center", borderRadius:10, alignItems:"center"}}>
+			            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, color:GlobalColors.LetterColor,fontFamily:"Dosis-Medium", paddingLeft:"0%", paddingHorizontal:"10%"}} allowFontScaling={false}>{props.singleSerie.rating.ageRating}</Text>
+			          </View>
+		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.rating.ageRatingGuide}</Text>
+		          </View>
+	          </View>
+						<View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"transparent",flexDirection:"row"}}>
+							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"column",width:"100%",justifyContent:"center"}}>
+		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1,fontFamily:"Dosis-Medium"}} allowFontScaling={false}>{(props.singleSerie.attr.subtype == "movie")?("Movie Duration"):("Episode Duration")}</Text>
+								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.episodes.episodeLength} min.</Text>
+		          </View>
+							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"column",width:"100%",justifyContent:"center"}}>
+		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1,fontFamily:"Dosis-Medium"}} allowFontScaling={false}>Airing Status</Text>
+								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.dates.status}</Text>
+		          </View>
+	          </View>
+					</View>
+	      </View>
+	      <View style={{...styles.topContainer,height:(dimensions.window.height > dimensions.window.width)?(dimensions.window.height*0.6):(dimensions.window.height*1.2)}}>
+					<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
+						<Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, fontFamily:"Dosis-Medium"}} allowFontScaling={false}>Synopsis</Text>
+					</View>
+					<View style={{...styles.textHeaderContainer,flex:5,backgroundColor:"transparent",flexDirection:"row",width:"100%", alignItems:"flex-start"}}>
+						<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.attr.synopsis}</Text>
+					</View>
+	      </View>
+      </ScrollView>
+		</View>
   );
 };
 
 const styles = StyleSheet.create({
+	container: {
+		backgroundColor: GlobalColors.PrimaryColor,
+		flex: 1
+	},
+	scroll:{
+     flex:4,
+  },
+	topContainer:{
+    backgroundColor:"transparent",
+  },
+	headerIcon: {
+	},
+	textHeader:{
+    color:GlobalColors.LetterColor,
+		paddingLeft:"8%",
+  },
+	textHeaderContainer:{
+    alignItems:'center',
+    justifyContent:'flex-start'
+  },
+	playButton: {
+		backgroundColor:GlobalColors.AnalogousColor,
+		width:"45%",
+		height:"80%",
+		borderRadius:10,
+		padding:3,
+		justifyContent:"center",
+		flexDirection:"row",
+		alignItems:"center",
+		marginHorizontal:10,
+	},
+	modalView: {
+    margin: 35,
+    backgroundColor: GlobalColors.SecondaryColor,
+    borderRadius: 20,
+    padding: 15,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5
+  },
+  openButton: {
+    backgroundColor: GlobalColors.TriadicColor,
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+		alignSelf:'flex-end'
+
+  },
+  textStyle: {
+    color: GlobalColors.LetterColor,
+    fontWeight: "bold",
+    textAlign: "center"
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+		color: GlobalColors.LetterColor,
+  },
+
+
+
+
+
+
+
+
+  midContainer:{
+    flex:4,
+    backgroundColor:"blue",
+  },
+  dteScrollContainer:{
+    width:'100%',
+		flex:4,
+		height:'100%',
+    alignItems:'center',
+  },
+
+	scrollModal:{
+     flex:8,
+		 //backgroundColor:'pink',
+		 // height:'80%',
+  },
+  item: {
+    backgroundColor: '#f9c2ff',
+    height:250,
+    padding:5,
+
+  },
+  title: {
+    fontSize: 32,
+  },
   scrollView: {
     backgroundColor: "black",
   },

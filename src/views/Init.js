@@ -9,79 +9,80 @@ import {
 	ImageBackground,
 	ActivityIndicator,
 	Dimensions,
+	Alert,
 }	from 'react-native';
 import GlobalColors from '../colors/GlobalColors';
 import useApiKitsu from './../utils/useApiKitsu';
-
 const window = Dimensions.get("window");
 const screen = Dimensions.get("screen");
 
 const Init = () => {
   const [loading,setLoading] = useState(false);
 	const [dimensions, setDimensions] = useState({ window, screen });
+	const [dataPrev,setDataPrev] = useState([]);
+	const [dataPrevPopular,setDataPrevPopular] = useState([]);
+	const [dataPrevRating,setDataPrevRating] = useState([]);
+  const [apiURL,setApiURL] = useState("https://kitsu.io/api/edge/anime?page%5Blimit%5D=20&page%5Boffset%5D=0");
+	const [apiURLPopular,setApiURLPopular] = useState("https://kitsu.io/api/edge/anime?sort=popularityRank");
+	const [apiURLRating,setApiURLRating] = useState("https://kitsu.io/api/edge/anime?sort=-averageRating");
+	const [count,setCount] = useState(0);
+	const {getAnimeData,getFromApiAsync} = useApiKitsu();
 
-	const {getAnimeData} = useApiKitsu();
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
   };
-  useEffect(() => {
+
+	useEffect(() => {
     Dimensions.addEventListener("change", onChange);
     return () => {
       Dimensions.removeEventListener("change", onChange);
     };
   });
-	useEffect(() => {
-		setLoading(true)
-		getFromApi();
-  },[]);
 
-	const getFromApi = () => {
-    getAnimeData("https://kitsu.io/api/edge/anime",(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let seriesData = jsonResponse.data;
-      console.log("Numero de series ",seriesData.length);
-      var arrayRecoveredData = seriesData.map(function(element){
-         var mappedElement = {};
-         mappedElement.id = element.id;
-         mappedElement.type = element.type;
-         mappedElement.mediumImage = element.attributes.posterImage.medium;
-         var mappedElementAttributes = {};
-         mappedElementAttributes.synopsis = element.attributes.synopsis;
-         mappedElementAttributes.description = element.attributes.description;
-         mappedElementAttributes.averageRating = element.attributes.averageRating;
-         mappedElementAttributes.youtubeVideoId = element.attributes.youtubeVideoId;
-         mappedElementAttributes.genres = element.relationships.genres.links.related;
-         var mappedElementTitles = {};
-         mappedElementTitles.canonicalTitle = element.attributes.canonicalTitle;
-         mappedElementTitles.en = element.attributes.titles.en;
-         mappedElementTitles.en_jp = element.attributes.titles.en_jp;
-         mappedElementTitles.ja_jp = element.attributes.titles.ja_jp;
-         mappedElementAttributes.titles = mappedElementTitles;
-         mappedElement.attr = mappedElementAttributes;
-         var mappedElementDates = {};
-         mappedElementDates.startDate = element.attributes.startDate;
-         mappedElementDates.endDate = element.attributes.endDate;
-         mappedElementDates.status = element.attributes.status;
-         mappedElementDates.nextRelease = element.attributes.nextRelease;
-         mappedElement.dates = mappedElementDates;
-         var mappedElementEpisodes = {};
-         mappedElementEpisodes.count = element.attributes.episodeCount;
-         mappedElementEpisodes.episodeLength = element.attributes.episodeLength;
-         mappedElementEpisodes.episodeListLink = element.relationships.episodes.links.related;
-         mappedElement.episodes = mappedElementEpisodes;
-         var mappedElementRating = {};
-         mappedElementRating.ageRating = element.attributes.ageRating;
-         mappedElementRating.ageRatingGuide = element.attributes.ageRatingGuide;
-         mappedElement.rating = mappedElementRating;
-         var mappedElementCharacters = {};
-         mappedElementCharacters.characterListLink = element.relationships.characters.links.related;
-         mappedElement.characters = mappedElementCharacters;
-         return mappedElement;
-      });
-			setLoading(false);
-			Actions.home({dataApi:arrayRecoveredData, nextLink:jsonResponse.links.next });
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
+	// Trigger with change in data recovered from API. Get last 60 records by calling three times, pagination 20.
+  useEffect(()=>{
+		setLoading(true);
+    if(count < 3){
+      apiCon();
+    } else {
+    	setLoading(false);
+			Actions.home({dataApi:dataPrev, nextLink: apiURL, dataApiPopular:dataPrevPopular,dataApiRating:dataPrevRating});
+    }
+	},[dataPrev]);
+
+
+	// Call API, wait for result andcombine it with previous data. Add 1 to counter.
+	const apiCon = () => {
+    getFromApiAsync(apiURL,"series").then(response => {
+			if (response.length != 0){
+				var newUrl = response.pop();
+				setApiURL(newUrl);
+	      setDataPrev([...dataPrev, ...response])
+				getFromApiAsync(apiURLPopular,"series").then(response => {
+					if (response.length != 0){
+						var newUrl = response.pop();
+						setApiURLPopular(newUrl);
+			      setDataPrevPopular([...dataPrevPopular, ...response]);
+						getFromApiAsync(apiURLRating,"series").then(response => {
+							if (response.length != 0){
+								var newUrl = response.pop();
+								setApiURLRating(newUrl);
+					      setCount(count+1);
+					      setDataPrevRating([...dataPrevRating, ...response])
+							} else {
+								Alert.alert("Sorry, ","We could not retrieve data for the series, please try again later.")
+								setLoading(false);
+							}
+				    });
+					} else {
+						Alert.alert("Sorry, ","We could not retrieve data for the series, please try again later.")
+						setLoading(false);
+					}
+		    });
+			} else {
+				Alert.alert("Sorry, ","We could not retrieve data for the series, please try again later.")
+				setLoading(false);
+			}
     });
   }
 
@@ -89,7 +90,7 @@ const Init = () => {
     <View style={styles.container}>
 			<View style={styles.containerUpper}>
 				<View style={styles.containerTitle}>
-					<Text>
+					<Text style={styles.title}>
 						Coding Challenge Project
 					</Text>
 				</View>
@@ -104,7 +105,9 @@ const Init = () => {
 				</View>
 			</View>
 			<View style={styles.containerLoading}>
-				<ActivityIndicator visible={loading} size='large' color={GlobalColors.SecondaryColor}/>
+				{(loading)&&(
+					<ActivityIndicator visible={loading} size={100} color={GlobalColors.ComplementaryColor}/>
+				)}
 			</View>
     </View>
   );
@@ -129,7 +132,7 @@ const styles = StyleSheet.create({
 	},
 	containerTitle: {
 		backgroundColor: "transparent",
-		flex: 1,
+		flex: 2,
 		alignItems:'center',
     justifyContent:'center',
 	},
@@ -139,6 +142,11 @@ const styles = StyleSheet.create({
 		alignItems:'center',
     justifyContent:'center',
 	},
+	title: {
+		color:GlobalColors.LetterColor,
+		fontSize:50,
+		fontFamily:"Dosis-Bold"
+	}
 });
 
 export default Init;
