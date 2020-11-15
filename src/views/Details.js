@@ -22,6 +22,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 const window = Dimensions.get("window");
 const screen = Dimensions.get("screen");
 import useApiKitsu from './../utils/useApiKitsu';
+import GlobalColors from '../colors/GlobalColors';
 
 const Details = (props) => {
 
@@ -41,6 +42,8 @@ const Details = (props) => {
 	const [modalFlToRender,setModalFlToRender] = useState("");
 	const [modalTitleToRender,setModalTitleToRender] = useState("");
 	const [responsiveFontSize,setResponsiveFontSize] = useState({});
+
+	// Set fonts size based on orientation change.
 	const onChange = ({ window, screen }) => {
 		console.log("onChange")
     setDimensions({ window, screen });
@@ -48,8 +51,8 @@ const Details = (props) => {
 			var typeScale = {};
 			typeScale.headline1 = Math.round(PixelRatio.roundToNearestPixel(60*scale));
 			typeScale.headline2 = Math.round(PixelRatio.roundToNearestPixel(40*scale));
-			typeScale.headline3 = Math.round(PixelRatio.roundToNearestPixel(25*scale));
-			typeScale.subtitle1 = Math.round(PixelRatio.roundToNearestPixel(18*scale));
+			typeScale.headline3 = Math.round(PixelRatio.roundToNearestPixel(20*scale));
+			typeScale.subtitle1 = Math.round(PixelRatio.roundToNearestPixel(16*scale));
 			typeScale.body1 = Math.round(PixelRatio.roundToNearestPixel(14*scale));
 			typeScale.button1 = Math.round(PixelRatio.roundToNearestPixel(10*scale));
 			setResponsiveFontSize(typeScale);
@@ -67,8 +70,8 @@ const Details = (props) => {
     };
   });
 
+	// Set initial fonts size based on actual dimensions. Set scale based on actual dimensions.
   useEffect(()=>{
-		console.log("should trigger onChange");
 		var scale = 0.0;
 		if(dimensions.window.width>dimensions.window.height){
 			scale = dimensions.window.height / 300;
@@ -78,185 +81,36 @@ const Details = (props) => {
 		var typeScale = {};
 		typeScale.headline1 = Math.round(PixelRatio.roundToNearestPixel(60*scale));
 		typeScale.headline2 = Math.round(PixelRatio.roundToNearestPixel(40*scale));
-		typeScale.headline3 = Math.round(PixelRatio.roundToNearestPixel(25*scale));
-		typeScale.subtitle1 = Math.round(PixelRatio.roundToNearestPixel(18*scale));
+		typeScale.headline3 = Math.round(PixelRatio.roundToNearestPixel(20*scale));
+		typeScale.subtitle1 = Math.round(PixelRatio.roundToNearestPixel(16*scale));
 		typeScale.body1 = Math.round(PixelRatio.roundToNearestPixel(14*scale));
 		typeScale.button1 = Math.round(PixelRatio.roundToNearestPixel(10*scale));
 		setResponsiveFontSize(typeScale);
 	},[]);
-	useEffect(()=>{
-		var serieDetailsObj = props.singleSerie;
-		//getGenresFromApi(serieDetailsObj.attr.genres);
-    //getEpisodesFromApi(serieDetailsObj.episodes.episodeListLink);
-    //getCharacterListFromApi(serieDetailsObj.characters.characterListLink);
-	},[]);
 
+	// set state variables (arrays) with serie info passed from home view.
 	useEffect(()=>{
-		console.log("listado de genres ",props.singleSerie.attr.genresList);
+		//console.log("listado de genres ",props.singleSerie.attr.genresList);
 		setSerieGenres([...props.singleSerie.attr.genresList]);
-		console.log("listado de episodios ",props.singleSerie.episodes.episodesList);
+		//console.log("listado de episodios ",props.singleSerie.episodes.episodesList);
 		setSerieEpisodes([...props.singleSerie.episodes.episodesList]);
-		console.log("listado de characters ",props.singleSerie.characters.singleCharacterList);
+		//console.log("listado de characters ",props.singleSerie.characters.singleCharacterList);
 		setSerieCharacters([...props.singleSerie.characters.singleCharacterList]);
 	},[]);
 
-	useEffect(()=>{
-		if(serieGenres.length != 0){
-			//console.log("entrada use effect genres change",serieGenres);
-		}
-	},[serieEpisodes]);
-
-	useEffect(()=>{
-		if(serieEpisodes.length != 0){
-			//console.log("entrada use effect serieEpisodes change",serieEpisodes);
-		}
-	},[serieEpisodes]);
-
-	useEffect(()=>{
-		if(charList.length != 0){
-			if(counter < charList.length){
-				var urlActual = charList[counter].singleCharacterLink;
-				getMoviesFromApiAsync(urlActual).then(response => {
-					setSerieCharacters([...serieCharacters,response]);
-					setCounter(counter+1);
-				});
-			}
-		}
-	},[charList,counter]);
-
-	//Linking.openURL('http://www.youtube.com/watch?v=PLgD9br3bze22iMSimpPeQ85CIqLswcklR');
-
-	const getGenresFromApi = (genresApiUrl) => {
-    getAnimeData(genresApiUrl,(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let genresData = jsonResponse.data;
-      var arrayRecoveredData = genresData.map(function(element){
-         var mappedElement = {};
-         mappedElement.id = element.id;
-         mappedElement.name = element.attributes.name;
-         return mappedElement;
-      });
-			setSerieGenres([...arrayRecoveredData]);
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
-    });
-  }
-	const getEpisodesFromApi = (episodesApiUrl) => {
-    getAnimeData(episodesApiUrl,(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let episodesData = jsonResponse.data;
-      let episodesLinks = jsonResponse.links;
-      var arrayRecoveredData = episodesData.map(function(element){
-         var mappedElement = {};
-         mappedElement.id = element.id;
-         var mappedElementTitles = {};
-         mappedElementTitles.canonicalTitle = element.attributes.canonicalTitle;
-         mappedElementTitles.en_us = element.attributes.titles.en_us;
-         mappedElementTitles.en_jp = element.attributes.titles.en_jp;
-         mappedElementTitles.ja_jp = element.attributes.titles.ja_jp;
-         mappedElement.titles = mappedElementTitles;
-         mappedElement.seasonNumber = element.attributes.seasonNumber;
-         mappedElement.number = element.attributes.number;
-         mappedElement.airdate = element.attributes.airdate;
-         return mappedElement;
-      });
-			setSerieEpisodes([...arrayRecoveredData]);
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
-    });
-  }
-	const getCharacterListFromApi = (charactersApiUrl) => {
-    getAnimeData(charactersApiUrl,(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let characterData = jsonResponse.data;
-      var arrayRecoveredData = characterData.map(function(element){
-         var mappedElement = {};
-         mappedElement.id = element.id;
-         mappedElement.singleCharacterLink = element.relationships.character.links.related;
-         return mappedElement;
-      });
-			setCharList([...arrayRecoveredData])
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
-    });
-  }
-	const getMoviesFromApiAsync = async (apiUrl) => {
-		//console.log("Entrada Async");
-		//console.log("Entrada Async url ",apiUrl);
-		var myHeaders = new Headers();
-		myHeaders.append("Accept", "application/vnd.api+json");
-		myHeaders.append("Content-Type", "application/vnd.api+json");
-		myHeaders.append("Cookie", "__cfduid=d5f5453d12d2a1c6de803292f3a73e8ab1604949302");
-		var requestOptions = {
-			method: 'GET',
-			headers: myHeaders,
-			redirect: 'follow'
-		};
-	  try {
-	    let response = await fetch(
-	      apiUrl,
-				requestOptions
-	    );
-	    let jsonResponse = await response.json();
-			let singleCharacterData = await jsonResponse.data;
-      let mappedElementC = {};
-      mappedElementC.id = await singleCharacterData.id;
-      let mappedElementName = {};
-      mappedElementName.canonicalName =  await singleCharacterData.attributes.canonicalName;
-      mappedElementName.en = await singleCharacterData.attributes.names.en;
-      mappedElementName.ja_jp = await singleCharacterData.attributes.names.ja_jp;
-      mappedElementName.name = await singleCharacterData.attributes.name;
-      mappedElementC.names = await mappedElementName;
-	    return mappedElementC;
-	  } catch (error) {
-	    console.error(error);
-	  }
-	};
-  const getSingleCharacterFromApi = (singleCharacterApiUrl) => {
-		console.log(singleCharacterApiUrl)
-    getAnimeData(singleCharacterApiUrl,(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let singleCharacterData = jsonResponse.data;
-      let mappedElementC = {};
-      mappedElementC.id = singleCharacterData.id;
-      let mappedElementName = {};
-      mappedElementName.canonicalName = singleCharacterData.attributes.canonicalName;
-      mappedElementName.en = singleCharacterData.attributes.names.en;
-      mappedElementName.ja_jp = singleCharacterData.attributes.names.ja_jp;
-      mappedElementName.name = singleCharacterData.attributes.name;
-      mappedElementC.names = mappedElementName;
-      let arrayToInsert = [];
-      arrayToInsert.push(mappedElementC);
-      setSerieCharacters([...serieCharacters, arrayToInsert])
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
-    });
-  }
-
 	const renderItemChar = ({ item }) => (
-		<View style={{backgroundColor:"black",borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
-			<Text style={{...styles.textHeader, fontSize:18,paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>{(item.names.name)}</Text>
+		<View style={{backgroundColor:GlobalColors.AnalogousSecondaryColor,borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light" ,paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.names.name)}</Text>
 		</View>
   );
-	const renderItemEp = ({ item }) => (
-		<View style={{backgroundColor:"black",borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
-			<Text style={{...styles.textHeader, fontSize:18,paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>{(item.titles.canonicalTitle)}</Text>
-			<Text style={{...styles.textHeader, fontSize:10,paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>S{(item.seasonNumber)} Ep{(item.number)}</Text>
-			<Text style={{...styles.textHeader, fontSize:10,paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>{(item.airdate)?(item.airdate).split("-").reverse().join("-"):"-"}</Text>
 
+	const renderItemEp = ({ item }) => (
+		<View style={{backgroundColor:GlobalColors.AnalogousSecondaryColor,borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.titles.canonicalTitle)}</Text>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>S{(item.seasonNumber)} Ep{(item.number)}</Text>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.airdate)?(item.airdate).split("-").reverse().join("-"):"-"}</Text>
 		</View>
   );
-	const openModal = (modalType) => {
-		if (modalType == "Characters"){
-			setModalFlToRender([...serieCharacters]);
-			setModalTitleToRender(modalType);
-			setCharacterModalVisible(true);
-		} else {
-			setModalFlToRender([...serieEpisodes]);
-			setModalTitleToRender(modalType);
-			setCharacterModalVisible(true);
-		}
-	}
 
   return (
 		<View style={styles.container}>
@@ -270,12 +124,12 @@ const Details = (props) => {
 				<View style={styles.centeredView}>
 					<View style={styles.modalView}>
 						<TouchableHighlight
-							style={{ ...styles.openButton, backgroundColor: "#2196F3", alignSelf:'flex-end' }}
+							style={{ ...styles.openButton }}
 							onPress={() => { setCharacterModalVisible(false) }}
 						>
-							<Text style={styles.textStyle}>Close</Text>
+							<Text style={{...styles.textStyle,fontSize:responsiveFontSize.button1, fontFamily:"Dosis-Medium"}}>Close</Text>
 						</TouchableHighlight>
-						<Text style={styles.modalText}>Series Characters</Text>
+						<Text style={{...styles.modalText,fontSize:responsiveFontSize.headline3, fontFamily:"Dosis-Medium"}}>Series Characters</Text>
 							<FlatList
 								data={serieCharacters}
 								renderItem={renderItemChar}
@@ -297,12 +151,12 @@ const Details = (props) => {
 				<View style={styles.centeredView}>
 					<View style={styles.modalView}>
 						<TouchableHighlight
-							style={{ ...styles.openButton, backgroundColor: "#2196F3", alignSelf:'flex-end' }}
+							style={{ ...styles.openButton }}
 							onPress={() => { setEpisodeModalVisible(false) }}
 						>
-							<Text style={styles.textStyle}>Close</Text>
+							<Text style={{...styles.textStyle,fontSize:responsiveFontSize.button1, fontFamily:"Dosis-Medium"}}>Close</Text>
 						</TouchableHighlight>
-						<Text style={styles.modalText}>Series First Episodes</Text>
+						<Text style={{...styles.modalText,fontSize:responsiveFontSize.headline3, fontFamily:"Dosis-Medium"}}>Series First Episodes</Text>
 							<FlatList
 								data={serieEpisodes}
 								renderItem={renderItemEp}
@@ -314,58 +168,63 @@ const Details = (props) => {
 					</View>
 				</View>
 			</Modal>
+
       <ScrollView style={styles.scroll}>
-	      <View style={{...styles.topContainer,height:(dimensions.window.height > dimensions.window.width)?(dimensions.window.height*0.4):(dimensions.window.height*1.2), borderColor:"green", borderWidth:1,flexDirection:"row", width:dimensions.window.width}}>
-	        <View style={{width:(dimensions.window.width*0.4), borderColor:"yellow", borderWidth:1, justifyContent:"center", alignItems:"center"}}>
+				{/*	Image and basic info container*/}
+	      <View style={{...styles.topContainer,height:(dimensions.window.height > dimensions.window.width)?(dimensions.window.height*0.4):(dimensions.window.height*1.2), flexDirection:"row", width:dimensions.window.width}}>
+					{/*	Image container with play button in top right button. TouchableOpacity for image.*/}
+	        <View style={{width:(dimensions.window.width*0.4), justifyContent:"center", alignItems:"center"}}>
 						<TouchableOpacity style={{ width:"95%", height:"95%",borderColor:"black", borderWidth:3, borderRadius:6}} onPress={() => Linking.openURL(`http://www.youtube.com/watch?v=${props.singleSerie.attr.youtubeVideoId}`)}>
 							<ImageBackground
 								style={{width:"100%", height:"100%"}}
 								source={{uri:props.singleSerie.mediumImage}}
 							>
-								<Icon name="play-arrow" color="white" size={responsiveFontSize.headline2} style={{...styles.headerIcon,position:"absolute", right:"5%"}} />
+								<Icon name="play-arrow" color={GlobalColors.LetterColor} size={responsiveFontSize.headline2} style={{...styles.headerIcon,position:"absolute", right:"5%"}} />
 							</ImageBackground>
 						</TouchableOpacity>
 	        </View>
-	        <View style={{borderColor:"black", borderWidth:1,flex:3,flexDirection:"column"}}>
-	          <View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"red",flexDirection:"row",width:"100%"}}>
+					{/*	Info container next to image container. */}
+	        <View style={{flex:3,flexDirection:"column"}}>
+	          <View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
 	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.headline3, fontFamily:"Dosis-Medium"}} allowFontScaling={false}>{(props.singleSerie.attr.titles.en)?(props.singleSerie.attr.titles.en):(props.singleSerie.attr.titles.en_jp)?(props.singleSerie.attr.titles.en_jp):(props.singleSerie.attr.titles.ja_jp)}</Text>
 	          </View>
-	          <View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"black",flexDirection:"row",width:"100%"}}>
+	          <View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
 	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.attr.titles.canonicalTitle}</Text>
 	          </View>
-						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"green",flexDirection:"row",width:"100%",justifyContent:"center"}}>
+						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"center"}}>
 							<TouchableOpacity style={{...styles.playButton}} onPress={() => { setCharacterModalVisible(true)}}>
-								<Icon name="face" color="white" size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
+								<Icon name="face" color={GlobalColors.LetterColor} size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
 								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Characters</Text>
 							</TouchableOpacity>
 							<TouchableOpacity style={{...styles.playButton}} onPress={() => { setEpisodeModalVisible(true)}}>
-								<Icon name="subscriptions" color="white" size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
+								<Icon name="subscriptions" color={GlobalColors.LetterColor} size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
 								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Episodes</Text>
 							</TouchableOpacity>
 	          </View>
-						<View style={{...styles.textHeaderContainer,flex:0.5,backgroundColor:"purple",flexDirection:"row"}}>
-							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"green",flexDirection:"row",width:"100%",justifyContent:"flex-start"}}>
+						<View style={{...styles.textHeaderContainer,flex:0.5,backgroundColor:"transparent",flexDirection:"row"}}>
+							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"flex-start"}}>
 		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{props.singleSerie.type}</Text>
 		          </View>
-							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"pink",flexDirection:"row",width:"100%",justifyContent:"flex-start"}}>
+							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"flex-start"}}>
 		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{props.singleSerie.episodes.count} episodes</Text>
 		          </View>
 	          </View>
-						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"black",flexDirection:"row",width:"100%"}}>
+						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
 	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.dates.startDate).split("-").reverse().join("-")}  to {(props.singleSerie.dates.endDate)?((props.singleSerie.dates.endDate).split("-").reverse().join("-")):"-"}</Text>
 	          </View>
 	        </View>
 	      </View>
-	      <View style={{...styles.topContainer,height:(dimensions.window.height > dimensions.window.width)?(dimensions.window.height*0.40):(dimensions.window.height*0.8), borderColor:"green", borderWidth:5}}>
-					<View style={{borderColor:"black", borderWidth:1,flex:3,flexDirection:"column"}}>
-						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"red",flexDirection:"row",width:"100%"}}>
+				{/*	Bottom info container*/}
+	      <View style={{...styles.topContainer,height:(dimensions.window.height > dimensions.window.width)?(dimensions.window.height*0.40):(dimensions.window.height*0.8)}}>
+					<View style={{flex:3,flexDirection:"column"}}>
+						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
 							<Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, fontFamily:"Dosis-Medium"}} allowFontScaling={false}>Genres</Text>
 						</View>
-						<View style={{...styles.textHeaderContainer,flex:3,backgroundColor:"gray",flexDirection:"row",width:"100%",flexWrap:"wrap",justifyContent:"center"}}>
+						<View style={{...styles.textHeaderContainer,flex:3,backgroundColor:"transparent",flexDirection:"row",width:"100%",flexWrap:"wrap",justifyContent:"center"}}>
 						{serieGenres.map((usr)=>{
 							try{
 									return(
-										<View style={{backgroundColor:"pink",borderRadius:30,marginHorizontal:10,marginVertical:3, padding:3}} key={usr.id}>
+										<View style={{backgroundColor:GlobalColors.TriadicColor,borderRadius:30,marginHorizontal:20,marginVertical:10, padding:3}} key={usr.id}>
 											<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,paddingLeft:0,padding:4, fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{usr.name}</Text>
 										</View>
 									)
@@ -373,35 +232,35 @@ const Details = (props) => {
 							}
 						})}
 						</View>
-						<View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"purple",flexDirection:"row"}}>
-							<View style={{...styles.textHeaderContainer,flex:0.5,backgroundColor:"green",flexDirection:"row",width:"100%",justifyContent:"center"}}>
+						<View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"transparent",flexDirection:"row"}}>
+							<View style={{...styles.textHeaderContainer,flex:0.5,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"center"}}>
 								<Icon name="star" color="yellow" size={responsiveFontSize.headline3} style={{...styles.headerIcon}} />
 		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.headline3,fontFamily:"Dosis-Medium"}} allowFontScaling={false}>{((props.singleSerie.attr.averageRating)/20).toFixed(1)}</Text>
 		          </View>
-							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"pink",flexDirection:"row",width:"100%",justifyContent:"center",height:"70%"}}>
-								<View style={{...styles.textHeaderContainer,backgroundColor:"gray",flexDirection:"column",justifyItems:"center", borderRadius:10, alignItems:"center"}}>
-			            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, color:"white",fontFamily:"Dosis-Medium"}} allowFontScaling={false}>{props.singleSerie.rating.ageRating}</Text>
+							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"center",height:"70%"}}>
+								<View style={{...styles.textHeaderContainer,backgroundColor:GlobalColors.TriadicSecondaryColor,flexDirection:"column",justifyItems:"center", borderRadius:10, alignItems:"center"}}>
+			            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, color:GlobalColors.LetterColor,fontFamily:"Dosis-Medium", paddingLeft:"0%", paddingHorizontal:"10%"}} allowFontScaling={false}>{props.singleSerie.rating.ageRating}</Text>
 			          </View>
-		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.rating.ageRatingGuide}</Text>
+		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.rating.ageRatingGuide}</Text>
 		          </View>
 	          </View>
-						<View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"purple",flexDirection:"row"}}>
-							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"green",flexDirection:"column",width:"100%",justifyContent:"center"}}>
+						<View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"transparent",flexDirection:"row"}}>
+							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"column",width:"100%",justifyContent:"center"}}>
 		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1,fontFamily:"Dosis-Medium"}} allowFontScaling={false}>Episode Duration</Text>
 								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.episodes.episodeLength} min.</Text>
 		          </View>
-							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"red",flexDirection:"column",width:"100%",justifyContent:"center"}}>
+							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"column",width:"100%",justifyContent:"center"}}>
 		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1,fontFamily:"Dosis-Medium"}} allowFontScaling={false}>Airing Status</Text>
 								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.dates.status}</Text>
 		          </View>
 	          </View>
 					</View>
 	      </View>
-	      <View style={{...styles.topContainer,height:(dimensions.window.height > dimensions.window.width)?(dimensions.window.height*0.6):(dimensions.window.height*1.2), borderColor:"green", borderWidth:5}}>
-					<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"red",flexDirection:"row",width:"100%"}}>
+	      <View style={{...styles.topContainer,height:(dimensions.window.height > dimensions.window.width)?(dimensions.window.height*0.6):(dimensions.window.height*1.2)}}>
+					<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
 						<Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, fontFamily:"Dosis-Medium"}} allowFontScaling={false}>Synopsis</Text>
 					</View>
-					<View style={{...styles.textHeaderContainer,flex:5,backgroundColor:"black",flexDirection:"row",width:"100%", alignItems:"flex-start"}}>
+					<View style={{...styles.textHeaderContainer,flex:5,backgroundColor:"transparent",flexDirection:"row",width:"100%", alignItems:"flex-start"}}>
 						<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.attr.synopsis}</Text>
 					</View>
 	      </View>
@@ -412,11 +271,27 @@ const Details = (props) => {
 
 const styles = StyleSheet.create({
 	container: {
-		backgroundColor: "transparent",
+		backgroundColor: GlobalColors.PrimaryColor,
 		flex: 1
 	},
+	scroll:{
+     flex:4,
+  },
+	topContainer:{
+    backgroundColor:"transparent",
+  },
+	headerIcon: {
+	},
+	textHeader:{
+    color:GlobalColors.LetterColor,
+		paddingLeft:"8%",
+  },
+	textHeaderContainer:{
+    alignItems:'center',
+    justifyContent:'flex-start'
+  },
 	playButton: {
-		backgroundColor:"red",
+		backgroundColor:GlobalColors.AnalogousColor,
 		width:"45%",
 		height:"80%",
 		borderRadius:10,
@@ -426,11 +301,9 @@ const styles = StyleSheet.create({
 		alignItems:"center",
 		marginHorizontal:10,
 	},
-
-
 	modalView: {
     margin: 35,
-    backgroundColor: "white",
+    backgroundColor: GlobalColors.SecondaryColor,
     borderRadius: 20,
     padding: 15,
     alignItems: "center",
@@ -444,36 +317,31 @@ const styles = StyleSheet.create({
     elevation: 5
   },
   openButton: {
-    backgroundColor: "#F194FF",
+    backgroundColor: GlobalColors.TriadicColor,
     borderRadius: 20,
     padding: 10,
-    elevation: 2
+    elevation: 2,
+		alignSelf:'flex-end'
+
   },
   textStyle: {
-    color: "white",
+    color: GlobalColors.LetterColor,
     fontWeight: "bold",
     textAlign: "center"
   },
   modalText: {
     marginBottom: 15,
-    textAlign: "center"
+    textAlign: "center",
+		color: GlobalColors.LetterColor,
   },
 
 
 
 
 
-	textHeader:{
-    color:"blue",
-		paddingLeft:"8%",
-  },
-  textHeaderContainer:{
-    alignItems:'center',
-    justifyContent:'flex-start'
-  },
-  topContainer:{
-    backgroundColor:"orange",
-  },
+
+
+
   midContainer:{
     flex:4,
     backgroundColor:"blue",
@@ -484,11 +352,7 @@ const styles = StyleSheet.create({
 		height:'100%',
     alignItems:'center',
   },
-	scroll:{
-     flex:4,
-		 //backgroundColor:'pink',
-		 // height:'80%',
-  },
+
 	scrollModal:{
      flex:8,
 		 //backgroundColor:'pink',

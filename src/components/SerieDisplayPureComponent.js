@@ -11,17 +11,18 @@ import {
 	Dimensions,
 	FlatList,
 }	from 'react-native';
+import GlobalColors from '../colors/GlobalColors';
 
 export default class SerieDisplayPureComponent extends React.PureComponent {
   render() {
     return(
-      <TouchableOpacity onPress={this.props.onPress} style={[styles.item]} disabled={this.props.disabledTouch}>
+      <TouchableOpacity onPress={this.props.onPress} style={styles.item} disabled={this.props.disabledTouch}>
         <Image
           style={styles.tinyLogo}
           source={{uri:this.props.displayImage}}
         />
-        <View style={[styles.itemTitle]}>
-          <Text>{(this.props.titleEn)?(this.props.titleEn):(this.props.titleEnJp)?(this.props.titleEnJp):(itemData.attr.titles.titleJa)}</Text>
+        <View style={styles.itemTitleContainer}>
+          <Text style={styles.itemTitle}>{(this.props.titleEn)?(this.props.titleEn):(this.props.titleEnJp)?(this.props.titleEnJp):(itemData.attr.titles.titleJa)}</Text>
         </View>
       </TouchableOpacity>
     )
@@ -31,13 +32,15 @@ export default class SerieDisplayPureComponent extends React.PureComponent {
 const styles = StyleSheet.create({
 
   item: {
-    height:250,
+    height:260,
     width:125,
-    backgroundColor: '#f9c2ff',
+    backgroundColor: GlobalColors.AnalogousColor,
     justifyContent:'center',
 		alignItems:'center',
     flex:1,
     marginHorizontal: 4,
+		borderRadius:20,
+		padding:10,
   },
   itemImage: {
     backgroundColor: 'red',
@@ -52,14 +55,16 @@ const styles = StyleSheet.create({
 		alignItems:'center',
     flex:0.5,
   },
-  itemTitle: {
-    backgroundColor: 'orange',
+  itemTitleContainer: {
+    backgroundColor: 'transparent',
     justifyContent:'center',
 		alignItems:'center',
     flex:1,
   },
-  title: {
-    fontSize: 32,
+  itemTitle: {
+    fontSize: 20,
+		color:GlobalColors.LetterColor,
+		fontFamily:"Dosis-Regular",
   },
   tinyLogo: {
     width: 100,

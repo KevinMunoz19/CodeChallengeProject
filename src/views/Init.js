@@ -48,9 +48,7 @@ const Init = () => {
 	// Call API, wait for result andcombine it with previous data. Add 1 to counter.
 	const apiCon = () => {
     getFromApiAsync(apiURL,"series").then(response => {
-			console.log("response ",response.length)
 			var newUrl = response.pop();
-			console.log("response ",response.length)
 			setApiURL(newUrl);
       setCount(count+1);
       setDataPrev([...dataPrev, ...response])
@@ -61,7 +59,7 @@ const Init = () => {
     <View style={styles.container}>
 			<View style={styles.containerUpper}>
 				<View style={styles.containerTitle}>
-					<Text>
+					<Text style={styles.title}>
 						Coding Challenge Project
 					</Text>
 				</View>
@@ -76,7 +74,7 @@ const Init = () => {
 				</View>
 			</View>
 			<View style={styles.containerLoading}>
-				<ActivityIndicator visible={loading} size='large' color={GlobalColors.SecondaryColor}/>
+				<ActivityIndicator visible={loading} size={100} color={GlobalColors.ComplementaryColor}/>
 			</View>
     </View>
   );
@@ -101,7 +99,7 @@ const styles = StyleSheet.create({
 	},
 	containerTitle: {
 		backgroundColor: "transparent",
-		flex: 1,
+		flex: 2,
 		alignItems:'center',
     justifyContent:'center',
 	},
@@ -111,6 +109,11 @@ const styles = StyleSheet.create({
 		alignItems:'center',
     justifyContent:'center',
 	},
+	title: {
+		color:GlobalColors.LetterColor,
+		fontSize:50,
+		fontFamily:"Dosis-Bold"
+	}
 });
 
 export default Init;

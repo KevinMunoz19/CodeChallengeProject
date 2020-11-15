@@ -28,8 +28,8 @@ const Item = ({ itemData, widthSt, onPress }) => (
         source={{uri:itemData.mediumImage}}
       />
     </View>
-    <View style={{width:widthSt*0.5,backgroundColor:"transparent", flexDirection:"column",justifyContent:"center" }}>
-      <Text style={{...styles.title,paddingLeft:"8%"}}>{(itemData.attr.titles.en)?(itemData.attr.titles.en):(itemData.attr.titles.en_jp)?(itemData.attr.titles.en_jp):(itemData.attr.titles.ja_jp)}</Text>
+    <View style={{width:widthSt*0.4,backgroundColor:"transparent", flexDirection:"column",justifyContent:"center" }}>
+      <Text style={{...styles.title,paddingLeft:"8%",fontFamily:"Dosis-Medium"}}>{(itemData.attr.titles.en)?(itemData.attr.titles.en):(itemData.attr.titles.en_jp)?(itemData.attr.titles.en_jp):(itemData.attr.titles.ja_jp)}</Text>
     </View>
   </TouchableOpacity>
 );
@@ -41,11 +41,9 @@ const Search = () => {
   const [isRefreshing,setIsRefreshing] = useState(false);
 	const [apiURL,setApiURL] = useState("");
 	const {getAnimeData} = useApiKitsu();
-
   const [searchResult,setSearchResult] = useState([]);
   const [searchText,setSearchText] = useState("");
   const [searching,setSearching] = useState(false);
-
 
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
@@ -67,9 +65,7 @@ const Search = () => {
       setSearching(true);
       getFromApi(`https://kitsu.io/api/edge/anime?filter[text]=${searchTextClean}`);
     }
-
   }
-
 
 	const getFromApi = (searchUrl) => {
     getAnimeData(searchUrl,(res)=> {
@@ -125,12 +121,10 @@ const Search = () => {
 		Actions.details({singleSerie: itemData });
   }
 
-
   return (
     <View style={styles.container}>
-
-      <View style={{...styles.topContainer,height:dimensions.window.height*0.1, borderColor:"green", borderWidth:1,flexDirection:"row",justifyContent:"flex-end",alignItems:"center"}}>
-        <View style={{ borderColor:"black", borderWidth:1, flexDirection:"row", alignItems:'center',justifyContent:'center', width:"60%", height:"50%", backgroundColor:'white',borderRadius:10,marginHorizontal:5}}>
+      <View style={{...styles.headerContainer,height:dimensions.window.height*0.1, flexDirection:"row",justifyContent:"flex-end",alignItems:"center"}}>
+        <View style={{ borderColor:"black", borderWidth:2, flexDirection:"row", alignItems:'center',justifyContent:'center', width:"60%", height:"50%", backgroundColor:'white',borderRadius:10,marginHorizontal:5}}>
           <Icon
             name="search"
             color={"black"}
@@ -148,9 +142,9 @@ const Search = () => {
         </View>
       </View>
 
-      <View style={{...styles.topContainer,height:dimensions.window.height*0.9, borderColor:"green", borderWidth:1, width:dimensions.window.width, alignItems:"center", justifyItems:"center"}}>
+      <View style={{...styles.bodyContainer,height:dimensions.window.height*0.9, width:dimensions.window.width, alignItems:"center", justifyItems:"center"}}>
         {(searching)&&(
-          <ActivityIndicator visible={searching} size='large' color={"pink"}/>
+          <ActivityIndicator visible={searching} size={100} color={GlobalColors.ComplementaryColor}/>
         )}
         <FlatList
           data={searchResult}
@@ -169,24 +163,28 @@ const styles = StyleSheet.create({
   inputBorder: {
     flex:1,
     width:"90%",
-		// borderBottomColor: '#DDDDDD',
-		// borderBottomWidth: 1,
 		textAlign:'left',
-
 	},
-  topContainer:{
-    backgroundColor:"orange",
+	container: {
+		backgroundColor:GlobalColors.AnalogousColor,
+		flex: 1
+	},
+	headerContainer:{
+    backgroundColor:GlobalColors.SecondaryColor,
   },
-
+	bodyContainer:{
+    backgroundColor:"transparent",
+  },
   item: {
-    backgroundColor: 'pink',
+    backgroundColor: GlobalColors.AnalogousSecondaryColor,
     padding: 10,
     marginVertical: 4,
     borderRadius: 8,
     borderWidth:4,
   },
   title: {
-    fontSize: 15,
+    fontSize: 25,
+		color: GlobalColors.LetterColor,
   },
 
 });
