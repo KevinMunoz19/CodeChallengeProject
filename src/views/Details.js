@@ -26,13 +26,13 @@ import GlobalColors from '../colors/GlobalColors';
 
 const Details = (props) => {
 
-  const [loading,setLoading] = useState(false);
+  const [loadingEpisodes,setLoadingEpisodes] = useState(false);
   const [serieGenres,setSerieGenres] = useState([]);
 	const [serieEpisodes,setSerieEpisodes] = useState([]);
 	const [serieCharacters,setSerieCharacters] = useState([]);
 	const [charList,setCharList] = useState([]);
 	const [counter,setCounter] = useState(0);
-	const {getAnimeData} = useApiKitsu();
+	const {getAnimeData,getFromApiAsync} = useApiKitsu();
 	const [dimensions, setDimensions] = useState({ window, screen });
 	const [renderMult,setRenderMult] = useState(["AAAAA","BBBBB","CCCCC","AAAAA","BBBBB","CCCCC","AAAAA","BBBBB","CCCCC"]);
 	const [renderMultObj,setRenderMultObj] = useState([{"id":"1","name":"AAA"},{"id":"2","name":"BBB"},{"id":"3","name":"CCC"},{"id":"4","name":"AAA"},{"id":"5","name":"BBB"},{"id":"6","name":"CCC"},{"id":"7","name":"CCC"},{"id":"8","name":"CCC"},{"id":"9","name":"CCC"},{"id":"10","name":"CCC"}]);
@@ -42,6 +42,7 @@ const Details = (props) => {
 	const [modalFlToRender,setModalFlToRender] = useState("");
 	const [modalTitleToRender,setModalTitleToRender] = useState("");
 	const [responsiveFontSize,setResponsiveFontSize] = useState({});
+	const [nextEpisodeBatchUrl,setNextEpisodeBatchUrl] = useState("");
 
 	// Set fonts size based on orientation change.
 	const onChange = ({ window, screen }) => {
@@ -94,6 +95,7 @@ const Details = (props) => {
 		setSerieGenres([...props.singleSerie.attr.genresList]);
 		//console.log("listado de episodios ",props.singleSerie.episodes.episodesList);
 		setSerieEpisodes([...props.singleSerie.episodes.episodesList]);
+		setNextEpisodeBatchUrl(props.singleSerie.episodes.episodesNextBatchUrl);
 		//console.log("listado de characters ",props.singleSerie.characters.singleCharacterList);
 		setSerieCharacters([...props.singleSerie.characters.singleCharacterList]);
 	},[]);
@@ -111,6 +113,25 @@ const Details = (props) => {
 			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.airdate)?(item.airdate).split("-").reverse().join("-"):"-"}</Text>
 		</View>
   );
+
+	const nextDataBatch = () => {
+		getFromApiAsync(nextEpisodeBatchUrl,"episodeList").then(response => {
+			if (response.length != 0){
+				var nextUrlFromResponse = response.pop();
+				setNextEpisodeBatchUrl(nextUrlFromResponse);
+				setSerieEpisodes([...serieEpisodes,...response ]);
+				setLoadingEpisodes(false);
+			} else {
+				Alert.alert("Sorry, ","We could not retrieve data for next episodes.")
+				setLoadingEpisodes(false);
+			}
+		})
+  }
+
+	const onRefresh = () => {
+    setLoadingEpisodes(true);
+    nextDataBatch();
+ }
 
   return (
 		<View style={styles.container}>
@@ -156,6 +177,9 @@ const Details = (props) => {
 						>
 							<Text style={{...styles.textStyle,fontSize:responsiveFontSize.button1, fontFamily:"Dosis-Medium"}}>Close</Text>
 						</TouchableHighlight>
+						{(loadingEpisodes)&&(
+		          <ActivityIndicator visible={loadingEpisodes} size={30} color={GlobalColors.ComplementaryColor}/>
+		        )}
 						<Text style={{...styles.modalText,fontSize:responsiveFontSize.headline3, fontFamily:"Dosis-Medium"}}>Series First Episodes</Text>
 							<FlatList
 								data={serieEpisodes}
@@ -164,6 +188,13 @@ const Details = (props) => {
 								horizontal={true}
 								showsVerticalScrollIndicator ={false}
 								showsHorizontalScrollIndicator={false}
+								onEndReachedThreshold={0.1}
+				        onEndReached={({ distanceFromEnd }) => {
+				          if(distanceFromEnd >= 0) {
+				            console.log("end reached");
+				            onRefresh();
+				          }
+				        }}
 							/>
 					</View>
 				</View>

@@ -98,8 +98,9 @@ const Home = (props) => {
 				itemData.attr.genresList= [...response];
 				getFromApiAsync(itemData.episodes.episodeListLink,"episodeList").then(response =>{
 					if (response.length != 0){
-						response.pop();
+						var nextEpUrl = response.pop();
 						itemData.episodes.episodesList= [...response];
+						itemData.episodes.episodesNextBatchUrl = nextEpUrl;
 						getFromApiAsync(itemData.characters.characterListLink,"characterList").then(response =>{
 							if (response.length != 0){
 								response.pop();
