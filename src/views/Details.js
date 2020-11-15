@@ -196,21 +196,23 @@ const Details = (props) => {
 								<Icon name="face" color={GlobalColors.LetterColor} size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
 								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Characters</Text>
 							</TouchableOpacity>
-							<TouchableOpacity style={{...styles.playButton}} onPress={() => { setEpisodeModalVisible(true)}}>
-								<Icon name="subscriptions" color={GlobalColors.LetterColor} size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
-								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Episodes</Text>
-							</TouchableOpacity>
+							{(props.singleSerie.attr.subtype != "movie")&&(
+								<TouchableOpacity style={{...styles.playButton}} onPress={() => { setEpisodeModalVisible(true)}}>
+									<Icon name="subscriptions" color={GlobalColors.LetterColor} size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
+									<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Episodes</Text>
+								</TouchableOpacity>
+							)}
 	          </View>
 						<View style={{...styles.textHeaderContainer,flex:0.5,backgroundColor:"transparent",flexDirection:"row"}}>
 							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"flex-start"}}>
 		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{props.singleSerie.type}</Text>
 		          </View>
 							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"flex-start"}}>
-		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{props.singleSerie.episodes.count} episodes</Text>
+		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.attr.subtype == "movie")?(""):(`${props.singleSerie.episodes.count} episodes`)}</Text>
 		          </View>
 	          </View>
 						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
-	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.dates.startDate).split("-").reverse().join("-")}  to {(props.singleSerie.dates.endDate)?((props.singleSerie.dates.endDate).split("-").reverse().join("-")):"-"}</Text>
+	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.dates.startDate).split("-").reverse().join("-")}{(props.singleSerie.attr.subtype == "movie")?(" Release date"):(` to ${(props.singleSerie.dates.startDate).split("-").reverse().join("-")}`)}</Text>
 	          </View>
 	        </View>
 	      </View>
@@ -246,7 +248,7 @@ const Details = (props) => {
 	          </View>
 						<View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"transparent",flexDirection:"row"}}>
 							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"column",width:"100%",justifyContent:"center"}}>
-		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1,fontFamily:"Dosis-Medium"}} allowFontScaling={false}>Episode Duration</Text>
+		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1,fontFamily:"Dosis-Medium"}} allowFontScaling={false}>{(props.singleSerie.attr.subtype == "movie")?("Movie Duration"):("Episode Duration")}</Text>
 								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.episodes.episodeLength} min.</Text>
 		          </View>
 							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"column",width:"100%",justifyContent:"center"}}>

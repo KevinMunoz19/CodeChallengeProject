@@ -9,6 +9,7 @@ import {
 	ImageBackground,
 	ActivityIndicator,
 	Dimensions,
+	Alert,
 }	from 'react-native';
 import GlobalColors from '../colors/GlobalColors';
 import useApiKitsu from './../utils/useApiKitsu';
@@ -19,7 +20,11 @@ const Init = () => {
   const [loading,setLoading] = useState(false);
 	const [dimensions, setDimensions] = useState({ window, screen });
 	const [dataPrev,setDataPrev] = useState([]);
+	const [dataPrevPopular,setDataPrevPopular] = useState([]);
+	const [dataPrevRating,setDataPrevRating] = useState([]);
   const [apiURL,setApiURL] = useState("https://kitsu.io/api/edge/anime?page%5Blimit%5D=20&page%5Boffset%5D=0");
+	const [apiURLPopular,setApiURLPopular] = useState("https://kitsu.io/api/edge/anime?sort=popularityRank");
+	const [apiURLRating,setApiURLRating] = useState("https://kitsu.io/api/edge/anime?sort=-averageRating");
 	const [count,setCount] = useState(0);
 	const {getAnimeData,getFromApiAsync} = useApiKitsu();
 
@@ -36,22 +41,48 @@ const Init = () => {
 
 	// Trigger with change in data recovered from API. Get last 60 records by calling three times, pagination 20.
   useEffect(()=>{
-		setLoading(true)
+		setLoading(true);
     if(count < 3){
       apiCon();
     } else {
     	setLoading(false);
-			Actions.home({dataApi:dataPrev, nextLink: apiURL});
+			Actions.home({dataApi:dataPrev, nextLink: apiURL, dataApiPopular:dataPrevPopular,dataApiRating:dataPrevRating});
     }
 	},[dataPrev]);
+
 
 	// Call API, wait for result andcombine it with previous data. Add 1 to counter.
 	const apiCon = () => {
     getFromApiAsync(apiURL,"series").then(response => {
-			var newUrl = response.pop();
-			setApiURL(newUrl);
-      setCount(count+1);
-      setDataPrev([...dataPrev, ...response])
+			if (response.length != 0){
+				var newUrl = response.pop();
+				setApiURL(newUrl);
+	      setDataPrev([...dataPrev, ...response])
+				getFromApiAsync(apiURLPopular,"series").then(response => {
+					if (response.length != 0){
+						var newUrl = response.pop();
+						setApiURLPopular(newUrl);
+			      setDataPrevPopular([...dataPrevPopular, ...response]);
+						getFromApiAsync(apiURLRating,"series").then(response => {
+							if (response.length != 0){
+								var newUrl = response.pop();
+								setApiURLRating(newUrl);
+					      setCount(count+1);
+					      setDataPrevRating([...dataPrevRating, ...response])
+							} else {
+								Alert.alert("Sorry, ","We could not retrieve data for the series, please try again later.")
+								setLoading(false);
+							}
+				    });
+					} else {
+						Alert.alert("Sorry, ","We could not retrieve data for the series, please try again later.")
+						setLoading(false);
+					}
+		    });
+			} else {
+				Alert.alert("Sorry, ","We could not retrieve data for the series, please try again later.")
+				setLoading(false);
+			}
     });
   }
 
@@ -74,7 +105,9 @@ const Init = () => {
 				</View>
 			</View>
 			<View style={styles.containerLoading}>
-				<ActivityIndicator visible={loading} size={100} color={GlobalColors.ComplementaryColor}/>
+				{(loading)&&(
+					<ActivityIndicator visible={loading} size={100} color={GlobalColors.ComplementaryColor}/>
+				)}
 			</View>
     </View>
   );

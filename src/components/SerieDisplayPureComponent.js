@@ -12,6 +12,7 @@ import {
 	FlatList,
 }	from 'react-native';
 import GlobalColors from '../colors/GlobalColors';
+import RatingDisplay from './RatingDisplay';
 
 export default class SerieDisplayPureComponent extends React.PureComponent {
   render() {

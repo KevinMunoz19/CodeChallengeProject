@@ -11,7 +11,8 @@ import {
   Alert,
 	Dimensions,
 	FlatList,
-	ScrollView
+	ScrollView,
+	BackHandler,
 }	from 'react-native';
 import useApiKitsu from './../utils/useApiKitsu';
 import GlobalColors from '../colors/GlobalColors';
@@ -25,6 +26,8 @@ const Home = (props) => {
   const [loading,setLoading] = useState(false);
 	const [dimensions, setDimensions] = useState({ window, screen });
 	const [dataFL,setDataFL] = useState([]);
+	const [dataFLPopular,setDataFLPopular] = useState([]);
+	const [dataFLRating,setDataFLRating] = useState([]);
   const [isRefreshing,setIsRefreshing] = useState(false);
 	const [apiURL,setApiURL] = useState("");
 	const {getAnimeData,getFromApiAsync} = useApiKitsu();
@@ -35,6 +38,12 @@ const Home = (props) => {
 	const [charList,setCharList] = useState([]);
 	const [singleCharList,setSingleCharList] = useState([]);
 	const [counter,setCounter] = useState(0);
+
+	useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', () => true)
+    return () =>
+      BackHandler.removeEventListener('hardwareBackPress', () => true)
+  }, [])
 
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
@@ -52,8 +61,13 @@ const Home = (props) => {
 			if(counter < charList.length){
 				var urlActual = charList[counter].singleCharacterLink;
 				getFromApiAsync(urlActual,"singleCharacter").then(response => {
-					setSingleCharList([...singleCharList,response]);
-					setCounter(counter+1);
+					if (response.length != 0){
+						setSingleCharList([...singleCharList,response]);
+						setCounter(counter+1);
+					} else {
+						Alert.alert("Sorry, ","We could not retrieve the data for characters")
+						setLoading(false);
+					}
 				});
 			}
 			if (counter==charList.length){
@@ -72,6 +86,8 @@ const Home = (props) => {
 	useEffect(()=>{
 		setApiURL(props.nextLink);
 		setDataFL([ ...dataFL, ...props.dataApi]);
+		setDataFLPopular([ ...dataFLPopular, ...props.dataApiPopular]);
+		setDataFLRating([ ...dataFLRating, ...props.dataApiRating]);
 	},[]);
 
 	const renderItem = ({ item }) => (
@@ -80,24 +96,34 @@ const Home = (props) => {
 
   const onSeriesSelected = (itemData) => {
 		setLoading(true);
-    console.log("id ",itemData.id);
 		getFromApiAsync(itemData.attr.genres, "genres").then(response =>{
-			response.pop();
-			itemData.attr.genresList= [...response];
-			console.log("resp ",response)
-			console.log("then genres")
-			getFromApiAsync(itemData.episodes.episodeListLink,"episodeList").then(response =>{
+			if (response.length != 0){
 				response.pop();
-				console.log("resp ep ",response)
-				itemData.episodes.episodesList= [...response];
-				getFromApiAsync(itemData.characters.characterListLink,"characterList").then(response =>{
-					response.pop();
-					console.log("resp char lst ",response)
-					itemData.characters.charactersList= [...response];
-					setCharList([...response]);
-					setSingleSerieToDetail(itemData);
+				itemData.attr.genresList= [...response];
+				getFromApiAsync(itemData.episodes.episodeListLink,"episodeList").then(response =>{
+					if (response.length != 0){
+						response.pop();
+						itemData.episodes.episodesList= [...response];
+						getFromApiAsync(itemData.characters.characterListLink,"characterList").then(response =>{
+							if (response.length != 0){
+								response.pop();
+								itemData.characters.charactersList= [...response];
+								setCharList([...response]);
+								setSingleSerieToDetail(itemData);
+							} else {
+								Alert.alert("Sorry, ","We could not retrieve the data for characters")
+								setLoading(false);
+							}
+						})
+					} else {
+						Alert.alert("Sorry, ","We could not retrieve the data for episodes")
+						setLoading(false);
+					}
 				})
-			})
+			} else {
+				Alert.alert("Sorry, ","We could not retrieve the data for genres")
+				setLoading(false);
+			}
 		})
   }
 
@@ -143,6 +169,34 @@ const Home = (props) => {
 						</Text>
 						<FlatList
 							data={dataFL}
+							renderItem={renderItem}
+							keyExtractor={item => item.id}
+							horizontal={true}
+							showsVerticalScrollIndicator ={false}
+							showsHorizontalScrollIndicator={false}
+						/>
+					</View>
+
+					<View style={{flex:1, backgroundColor:"transparent"}}>
+						<Text style={styles.flatListTitle}>
+							Most Popular
+						</Text>
+						<FlatList
+							data={dataFLPopular}
+							renderItem={renderItem}
+							keyExtractor={item => item.id}
+							horizontal={true}
+							showsVerticalScrollIndicator ={false}
+							showsHorizontalScrollIndicator={false}
+						/>
+					</View>
+
+					<View style={{flex:1, backgroundColor:"transparent"}}>
+						<Text style={styles.flatListTitle}>
+							Best Rating
+						</Text>
+						<FlatList
+							data={dataFLRating}
 							renderItem={renderItem}
 							keyExtractor={item => item.id}
 							horizontal={true}
