@@ -112,7 +112,7 @@ const Details = (props) => {
 				style={{width:200, height:120}}
 				source={{uri:(typeof item.thumbnail !== "undefined" && (typeof item.thumbnail !== "object" || !item.thumbnail))?("https://archive-media-1.nyafuu.org/w/thumb/1351/23/1351235766510s.jpg"):(item.thumbnail.original)}}
 			>
-				<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.titles.canonicalTitle)}</Text>
+				<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.titles.canonicalTitle.length > 40)?(item.titles.canonicalTitle.substring(0,37).concat("...")):(item.titles.canonicalTitle)}</Text>
 				<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>S{(item.seasonNumber)} Ep{(item.number)}</Text>
 				<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.airdate)?(item.airdate).split("-").reverse().join("-"):"-"}</Text>
 			</ImageBackground>
