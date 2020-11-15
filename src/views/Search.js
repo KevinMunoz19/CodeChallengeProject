@@ -39,7 +39,7 @@ const Search = () => {
 	const [dimensions, setDimensions] = useState({ window, screen });
 	const [dataFL,setDataFL] = useState([]);
   const [isRefreshing,setIsRefreshing] = useState(false);
-	const [apiURL,setApiURL] = useState("");
+	const [nextUrl,setNextUrl] = useState("");
 	const {getAnimeData,getFromApiAsync} = useApiKitsu();
   const [searchResult,setSearchResult] = useState([]);
   const [searchText,setSearchText] = useState("");
@@ -72,7 +72,8 @@ const Search = () => {
       setSearching(true);
 			getFromApiAsync(`https://kitsu.io/api/edge/anime?filter[text]=${searchTextClean}`,"series").then(response => {
 				if (response.length != 0){
-					response.pop();
+					var nextUrlFromResponse = response.pop();
+					setNextUrl(nextUrlFromResponse);
 					setSearchResult([...response ]);
 					setSearching(false);
 				} else {
@@ -137,6 +138,26 @@ const Search = () => {
 		})
   }
 
+
+	const nextDataBatch = () => {
+		getFromApiAsync(nextUrl,"series").then(response => {
+			if (response.length != 0){
+				var nextUrlFromResponse = response.pop();
+				setNextUrl(nextUrlFromResponse);
+				setSearchResult([...searchResult,...response ]);
+				setSearching(false);
+			} else {
+				Alert.alert("Sorry, ","We could not retrieve data for your search.")
+				setSearching(false);
+			}
+		})
+  }
+
+	const onRefresh = () => {
+    setSearching(true);
+    nextDataBatch();
+ }
+
   return (
     <View style={styles.container}>
       <View style={{...styles.headerContainer,height:dimensions.window.height*0.1, flexDirection:"row",justifyContent:"flex-end",alignItems:"center"}}>
@@ -168,6 +189,13 @@ const Search = () => {
           keyExtractor={item => item.id}
           showsVerticalScrollIndicator ={false}
           showsHorizontalScrollIndicator={false}
+					onEndReachedThreshold={0.1}
+	        onEndReached={({ distanceFromEnd }) => {
+	          if(distanceFromEnd >= 0) {
+	            console.log("end reached");
+	            onRefresh();
+	          }
+	        }}
         />
       </View>
 
