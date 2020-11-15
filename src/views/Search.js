@@ -71,9 +71,14 @@ const Search = () => {
       var searchTextClean = searchText.trim();
       setSearching(true);
 			getFromApiAsync(`https://kitsu.io/api/edge/anime?filter[text]=${searchTextClean}`,"series").then(response => {
-				response.pop();
-				setSearchResult([...response ]);
-				setSearching(false);
+				if (response.length != 0){
+					response.pop();
+					setSearchResult([...response ]);
+					setSearching(false);
+				} else {
+					Alert.alert("Sorry, ","We could not retrieve data for your search.")
+					setSearching(false);
+				}
 			})
     }
   }

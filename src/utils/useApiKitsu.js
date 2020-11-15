@@ -41,9 +41,10 @@ const useApiKitsu = () => {
 	    );
       let jsonResponse = await response.json();
       let seriesData = await jsonResponse.data;
-
-      //setApiURL(nextLink);
-			//Map data from result to custom JSON. Await for every record baing mapped
+      if (seriesData.length == 0){
+        var emptyArray = [];
+        return emptyArray;
+      }
       if (customJsonType=="singleCharacter"){
         let mappedElementC = {};
         mappedElementC.id = await seriesData.id;
@@ -54,8 +55,6 @@ const useApiKitsu = () => {
         mappedElementName.name = await seriesData.attributes.name;
         mappedElementC.names = await mappedElementName;
   	    return mappedElementC;
-
-  	    //return arrayToReturn;
       } else {
         let arrayRecoveredData =  await Promise.all(seriesData.map(async (element) => {
   				var mappedElement = {};
@@ -68,6 +67,7 @@ const useApiKitsu = () => {
     					mappedElementAttributes.description = await element.attributes.description;
     					mappedElementAttributes.averageRating = await element.attributes.averageRating;
     					mappedElementAttributes.youtubeVideoId = await element.attributes.youtubeVideoId;
+              mappedElementAttributes.subtype = await element.attributes.subtype;
     					mappedElementAttributes.genres = await element.relationships.genres.links.related;
     				var mappedElementTitles = {};
     					mappedElementTitles.canonicalTitle = await element.attributes.canonicalTitle;
@@ -123,6 +123,8 @@ const useApiKitsu = () => {
       }
 
 	  } catch (error) {
+      var emptyArray = [];
+      return emptyArray;
 	    console.error(error);
 	  }
 	};
