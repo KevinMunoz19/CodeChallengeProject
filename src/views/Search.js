@@ -29,7 +29,7 @@ const Item = ({ itemData, widthSt, onPress, disabledTouch }) => (
       />
     </View>
     <View style={{width:widthSt*0.4,backgroundColor:"transparent", flexDirection:"column",justifyContent:"center" }}>
-      <Text style={{...styles.title,paddingLeft:"8%",fontFamily:"Dosis-Medium"}}>{(itemData.attr.titles.en)?(itemData.attr.titles.en):(itemData.attr.titles.en_jp)?(itemData.attr.titles.en_jp):(itemData.attr.titles.ja_jp)}</Text>
+      <Text style={{...styles.title,paddingLeft:"8%",fontFamily:"Dosis-Medium"}}>{(itemData.attr.titles.en)?(itemData.attr.titles.en):(itemData.attr.titles.en_jp)?(itemData.attr.titles.en_jp):(itemData.attr.titles.ja_jp)?(itemData.attr.titles.ja_jp):(itemData.attr.titles.canonicalTitle)}</Text>
     </View>
   </TouchableOpacity>
 );

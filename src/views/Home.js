@@ -87,7 +87,7 @@ const Home = (props) => {
 	},[]);
 
 	const renderItem = ({ item }) => (
-		<SerieDisplayPureComponent displayImage={item.mediumImage} titleEn={item.attr.titles.en} titleEnJp={item.attr.titles.en_jp} titleJa={item.attr.titles.ja_jp} onPress={() => onSeriesSelected(item)} disabledTouch={loading}/>
+		<SerieDisplayPureComponent displayImage={item.mediumImage} titleEn={item.attr.titles.en} titleEnJp={item.attr.titles.en_jp} titleJa={item.attr.titles.ja_jp} titleCa={item.attr.titles.canonicalTitle} onPress={() => onSeriesSelected(item)} disabledTouch={loading}/>
   );
 
   const onSeriesSelected = (itemData) => {
