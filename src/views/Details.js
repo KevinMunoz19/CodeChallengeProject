@@ -185,7 +185,7 @@ const Details = (props) => {
 						{(loadingEpisodes)&&(
 		          <ActivityIndicator visible={loadingEpisodes} size={30} color={GlobalColors.ComplementaryColor}/>
 		        )}
-						<Text style={{...styles.modalText,fontSize:responsiveFontSize.headline3, fontFamily:"Dosis-Medium"}}>Series First Episodes</Text>
+						<Text style={{...styles.modalText,fontSize:responsiveFontSize.headline3, fontFamily:"Dosis-Medium"}}>Series Episodes</Text>
 							<FlatList
 								data={serieEpisodes}
 								renderItem={renderItemEp}
@@ -244,7 +244,7 @@ const Details = (props) => {
 		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{props.singleSerie.type}</Text>
 		          </View>
 							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"flex-start"}}>
-		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.attr.subtype == "movie")?(""):(`${props.singleSerie.episodes.count} episodes`)}</Text>
+		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.attr.subtype == "movie" || (!props.singleSerie.episodes.count))?(""):(`${props.singleSerie.episodes.count} episodes`)}</Text>
 		          </View>
 	          </View>
 						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
