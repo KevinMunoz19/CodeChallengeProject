@@ -34,11 +34,8 @@ const Details = (props) => {
 	const [counter,setCounter] = useState(0);
 	const {getAnimeData,getFromApiAsync} = useApiKitsu();
 	const [dimensions, setDimensions] = useState({ window, screen });
-	const [renderMult,setRenderMult] = useState(["AAAAA","BBBBB","CCCCC","AAAAA","BBBBB","CCCCC","AAAAA","BBBBB","CCCCC"]);
-	const [renderMultObj,setRenderMultObj] = useState([{"id":"1","name":"AAA"},{"id":"2","name":"BBB"},{"id":"3","name":"CCC"},{"id":"4","name":"AAA"},{"id":"5","name":"BBB"},{"id":"6","name":"CCC"},{"id":"7","name":"CCC"},{"id":"8","name":"CCC"},{"id":"9","name":"CCC"},{"id":"10","name":"CCC"}]);
 	const [characterModalVisible, setCharacterModalVisible] = useState(false);
 	const [episodeModalVisible, setEpisodeModalVisible] = useState(false);
-	const [renderMultObjEp,setRenderMultObjEp] = useState([{"id":"1","name":"AAA"},{"id":"2","name":"BBB"},{"id":"3","name":"CCC"},{"id":"4","name":"AAA"},{"id":"5","name":"BBB"},{"id":"6","name":"CCC"},{"id":"7","name":"CCC"},{"id":"8","name":"CCC"},{"id":"9","name":"CCC"},{"id":"10","name":"CCC"}]);
 	const [modalFlToRender,setModalFlToRender] = useState("");
 	const [modalTitleToRender,setModalTitleToRender] = useState("");
 	const [responsiveFontSize,setResponsiveFontSize] = useState({});
@@ -59,6 +56,7 @@ const Details = (props) => {
 			setResponsiveFontSize(typeScale);
   };
 
+	//BackHandler, when pressed, pops the current view, returning to previous view (home)
 	BackHandler.addEventListener('hardwareBackPress', function() {
 		Actions.pop();
 		return true;
@@ -89,23 +87,22 @@ const Details = (props) => {
 		setResponsiveFontSize(typeScale);
 	},[]);
 
-	// set state variables (arrays) with serie info passed from home view.
+	// Set state variables (arrays) with series info passed from home view.
 	useEffect(()=>{
-		//console.log("listado de genres ",props.singleSerie.attr.genresList);
 		setSerieGenres([...props.singleSerie.attr.genresList]);
-		//console.log("listado de episodios ",props.singleSerie.episodes.episodesList);
 		setSerieEpisodes([...props.singleSerie.episodes.episodesList]);
 		setNextEpisodeBatchUrl(props.singleSerie.episodes.episodesNextBatchUrl);
-		//console.log("listado de characters ",props.singleSerie.characters.singleCharacterList);
 		setSerieCharacters([...props.singleSerie.characters.singleCharacterList]);
 	},[]);
 
+	// Component for flatlist character item.
 	const renderItemChar = ({ item }) => (
 		<View style={{backgroundColor:GlobalColors.AnalogousSecondaryColor,borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
 			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light" ,paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.names.name)}</Text>
 		</View>
   );
 
+	// Component for flatlist episodes item. Background image can be the thumbnail, ifd exists, or 404 not found anime image. Episode title is set to 40 characters (including three dots) if the title is greater than 40 characters.
 	const renderItemEp = ({ item }) => (
 		<View style={{backgroundColor:"transparent",borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
 			<ImageBackground
@@ -119,6 +116,7 @@ const Details = (props) => {
 		</View>
   );
 
+	// Calls api, with url for next episodes data batch, and episodeList as function parameters. Pop url from last position in array, adds result data to existing data.
 	const nextDataBatch = () => {
 		getFromApiAsync(nextEpisodeBatchUrl,"episodeList").then(response => {
 			if (response.length != 0){
@@ -133,6 +131,7 @@ const Details = (props) => {
 		})
   }
 
+	// Set loading true and call nextDataBatch function.
 	const onRefresh = () => {
     setLoadingEpisodes(true);
     nextDataBatch();
@@ -210,6 +209,7 @@ const Details = (props) => {
 	      <View style={{...styles.topContainer,height:(dimensions.window.height > dimensions.window.width)?(dimensions.window.height*0.4):(dimensions.window.height*1.2), flexDirection:"row", width:dimensions.window.width}}>
 					{/*	Image container with play button in top right button. TouchableOpacity for image.*/}
 	        <View style={{width:(dimensions.window.width*0.4), justifyContent:"center", alignItems:"center"}}>
+						{/*	use React Native Linking to open youtube video */}
 						<TouchableOpacity style={{ width:"95%", height:"95%",borderColor:"black", borderWidth:3, borderRadius:6}} onPress={() => Linking.openURL(`http://www.youtube.com/watch?v=${props.singleSerie.attr.youtubeVideoId}`)}>
 							<ImageBackground
 								style={{width:"100%", height:"100%"}}
@@ -222,6 +222,7 @@ const Details = (props) => {
 					{/*	Info container next to image container. */}
 	        <View style={{flex:3,flexDirection:"column"}}>
 	          <View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
+							{/*	Render title based on it existing */}
 	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.headline3, fontFamily:"Dosis-Medium"}} allowFontScaling={false}>{(props.singleSerie.attr.titles.en)?(props.singleSerie.attr.titles.en):(props.singleSerie.attr.titles.en_jp)?(props.singleSerie.attr.titles.en_jp):(props.singleSerie.attr.titles.ja_jp)}</Text>
 	          </View>
 	          <View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
@@ -232,6 +233,7 @@ const Details = (props) => {
 								<Icon name="face" color={GlobalColors.LetterColor} size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
 								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Characters</Text>
 							</TouchableOpacity>
+							{/*	Render episodes button if anime is a movie */}
 							{(props.singleSerie.attr.subtype != "movie")&&(
 								<TouchableOpacity style={{...styles.playButton}} onPress={() => { setEpisodeModalVisible(true)}}>
 									<Icon name="subscriptions" color={GlobalColors.LetterColor} size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
@@ -243,11 +245,13 @@ const Details = (props) => {
 							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"flex-start"}}>
 		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{props.singleSerie.type}</Text>
 		          </View>
+							{/*	Render "episodes" word if anime is a series */}
 							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"flex-start"}}>
 		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.attr.subtype == "movie" || (!props.singleSerie.episodes.count))?(""):(`${props.singleSerie.episodes.count} episodes`)}</Text>
 		          </View>
 	          </View>
 						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%"}}>
+							{/*	Format date from YYYY-MM-DD to DD-MM-YYYY */}
 	            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1,fontFamily:"Dosis-Light"}} allowFontScaling={false}>{(props.singleSerie.dates.startDate).split("-").reverse().join("-")}{(props.singleSerie.attr.subtype == "movie")?(" Release date"):(` to ${(props.singleSerie.dates.startDate).split("-").reverse().join("-")}`)}</Text>
 	          </View>
 	        </View>
@@ -259,6 +263,7 @@ const Details = (props) => {
 							<Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, fontFamily:"Dosis-Medium"}} allowFontScaling={false}>Genres</Text>
 						</View>
 						<View style={{...styles.textHeaderContainer,flex:3,backgroundColor:"transparent",flexDirection:"row",width:"100%",flexWrap:"wrap",justifyContent:"center"}}>
+						{/*	Map genres array to custom component */}
 						{serieGenres.map((usr)=>{
 							try{
 									return(
@@ -273,6 +278,7 @@ const Details = (props) => {
 						<View style={{...styles.textHeaderContainer,flex:2,backgroundColor:"transparent",flexDirection:"row"}}>
 							<View style={{...styles.textHeaderContainer,flex:0.5,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"center"}}>
 								<Icon name="star" color="yellow" size={responsiveFontSize.headline3} style={{...styles.headerIcon}} />
+								{/*	Format rating from percentage to 1-10 value, with 1 decimal */}
 		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.headline3,fontFamily:"Dosis-Medium"}} allowFontScaling={false}>{((props.singleSerie.attr.averageRating)/20).toFixed(1)}</Text>
 		          </View>
 							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"center",height:"70%"}}>

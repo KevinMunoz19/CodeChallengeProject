@@ -31,7 +31,6 @@ export default class SerieDisplayPureComponent extends React.PureComponent {
 }
 
 const styles = StyleSheet.create({
-
   item: {
     height:260,
     width:125,

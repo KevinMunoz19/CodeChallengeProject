@@ -55,6 +55,7 @@ const Search = () => {
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
   };
+
   useEffect(() => {
     Dimensions.addEventListener("change", onChange);
     return () => {
@@ -62,10 +63,12 @@ const Search = () => {
     };
   });
 
+	// Item to render flatlist items. Props are onPress function and bool to disabele touchable opacity when loading/searching
   const renderItem = ({ item }) => (
     <Item itemData={item} widthSt={dimensions.window.width*0.8} onPress={() => onSeriesSelected(item)} disabledTouch={searching}/>
   );
 
+	// Fetch data if search value is not empty.
   const getSearchQuery = () => {
     if(searchText.trim() != ""){
       var searchTextClean = searchText.trim();
@@ -138,7 +141,6 @@ const Search = () => {
 		})
   }
 
-
 	const nextDataBatch = () => {
 		getFromApiAsync(nextUrl,"series").then(response => {
 			if (response.length != 0){
@@ -156,7 +158,7 @@ const Search = () => {
 	const onRefresh = () => {
     setSearching(true);
     nextDataBatch();
- }
+	}
 
   return (
     <View style={styles.container}>

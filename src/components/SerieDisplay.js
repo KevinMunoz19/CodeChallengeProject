@@ -15,23 +15,16 @@ const SerieDisplay = ({itemData,onPress}) =>{
 
 	return(
     <TouchableOpacity onPress={onPress} style={[styles.item]}>
-      {/* <View style={[styles.itemImage]}> */}
-        <Image
-          style={styles.tinyLogo}
-          source={{uri:itemData.mediumImage}}
-        />
-      {/* </View> */}
-
+      <Image
+        style={styles.tinyLogo}
+        source={{uri:itemData.mediumImage}}
+      />
       <View style={[styles.itemRating]}>
         <RatingDisplay/>
       </View>
-
       <View style={[styles.itemTitle]}>
         <Text>{(itemData.attr.titles.en)?(itemData.attr.titles.en):(itemData.attr.titles.en_jp)?(itemData.attr.titles.en_jp):(itemData.attr.titles.ja_jp)}</Text>
       </View>
-
-
-
     </TouchableOpacity>
 	);
 
