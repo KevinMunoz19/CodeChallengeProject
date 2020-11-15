@@ -104,26 +104,36 @@ const Search = () => {
 		}
   },[charList,counter]);
 
-  const onSeriesSelected = (itemData) => {
+	const onSeriesSelected = (itemData) => {
 		setSearching(true);
-    console.log("id ",itemData.id);
 		getFromApiAsync(itemData.attr.genres, "genres").then(response =>{
-			response.pop();
-			itemData.attr.genresList= [...response];
-			console.log("resp ",response)
-			console.log("then genres")
-			getFromApiAsync(itemData.episodes.episodeListLink,"episodeList").then(response =>{
+			if (response.length != 0){
 				response.pop();
-				console.log("resp ep ",response)
-				itemData.episodes.episodesList= [...response];
-				getFromApiAsync(itemData.characters.characterListLink,"characterList").then(response =>{
-					response.pop();
-					console.log("resp char lst ",response)
-					itemData.characters.charactersList= [...response];
-					setCharList([...response]);
-					setSingleSerieToDetail(itemData);
+				itemData.attr.genresList= [...response];
+				getFromApiAsync(itemData.episodes.episodeListLink,"episodeList").then(response =>{
+					if (response.length != 0){
+						response.pop();
+						itemData.episodes.episodesList= [...response];
+						getFromApiAsync(itemData.characters.characterListLink,"characterList").then(response =>{
+							if (response.length != 0){
+								response.pop();
+								itemData.characters.charactersList= [...response];
+								setCharList([...response]);
+								setSingleSerieToDetail(itemData);
+							} else {
+								Alert.alert("Sorry, ","We could not retrieve the data for characters")
+								setSearching(false);
+							}
+						})
+					} else {
+						Alert.alert("Sorry, ","We could not retrieve the data for episodes")
+						setSearching(false);
+					}
 				})
-			})
+			} else {
+				Alert.alert("Sorry, ","We could not retrieve the data for genres")
+				setSearching(false);
+			}
 		})
   }
 
