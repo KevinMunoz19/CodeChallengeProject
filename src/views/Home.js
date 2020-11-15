@@ -135,6 +135,7 @@ const Home = (props) => {
 				</View>
 			</View>
 			<View style={{...styles.bodyContainer,width:dimensions.window.width,height:dimensions.window.height*0.9}}>
+
 				<ScrollView style={{flex:1}}>
 					<View style={{flex:1, backgroundColor:"transparent"}}>
 						<Text style={styles.flatListTitle}>
@@ -150,6 +151,9 @@ const Home = (props) => {
 						/>
 					</View>
 				</ScrollView>
+				{(loading)&&(
+					<ActivityIndicator visible={loading} size={100} color={GlobalColors.ComplementaryColor} style={{position:"absolute"}}/>
+				)}
 			</View>
     </View>
   );
@@ -167,6 +171,8 @@ const styles = StyleSheet.create({
 	bodyContainer: {
 		backgroundColor: "transparent",
 		padding:8,
+		justifyContent:"center",
+		alignItems:"center",
 	},
 	flatListTitle: {
 		color:GlobalColors.LetterColor,
