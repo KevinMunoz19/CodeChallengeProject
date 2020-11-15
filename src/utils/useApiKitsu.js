@@ -22,6 +22,10 @@ const useApiKitsu = () => {
       });
   }
 
+  // Async fetch function.
+  // Paramerters:
+  // urlToUse:string, customJsonType:string;
+  // customJsonType can be singleCharacter, series, genres, episodeList or characterList. Each value mapps the data to a custom JSON.
 
   const getFromApiAsync = async (urlToUse, customJsonType) => {
 		// Headers defined by KJitsui API Docs
@@ -41,6 +45,7 @@ const useApiKitsu = () => {
 	    );
       let jsonResponse = await response.json();
       let seriesData = await jsonResponse.data;
+      // if no data is returned in JSON.data, an empty array is returned
       if (seriesData.length == 0){
         var emptyArray = [];
         return emptyArray;

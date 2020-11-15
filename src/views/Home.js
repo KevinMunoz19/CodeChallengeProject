@@ -31,7 +31,6 @@ const Home = (props) => {
   const [isRefreshing,setIsRefreshing] = useState(false);
 	const [apiURL,setApiURL] = useState("");
 	const {getAnimeData,getFromApiAsync} = useApiKitsu();
-
 	const [serieGenres,setSerieGenres] = useState([]);
 	const [serieEpisodes,setSerieEpisodes] = useState([]);
 	const [singleSerieToDetail,setSingleSerieToDetail] = useState({});
@@ -39,12 +38,12 @@ const Home = (props) => {
 	const [singleCharList,setSingleCharList] = useState([]);
 	const [counter,setCounter] = useState(0);
 
-
-
+	// OnChange funciton to detect change in orientation
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
   };
 
+	// Add listener to orientation change
   useEffect(() => {
     Dimensions.addEventListener("change", onChange);
     return () => {
@@ -52,6 +51,8 @@ const Home = (props) => {
     };
   });
 
+	// Fetch single character data when counter or charList changes. Fetch until counter has the same value as the character array.
+	// When counter and character array length is equal, navigate to details view and pass data as props
 	useEffect(() => {
     if(charList.length != 0){
 			if(counter < charList.length){
@@ -86,10 +87,14 @@ const Home = (props) => {
 		setDataFLRating([ ...dataFLRating, ...props.dataApiRating]);
 	},[]);
 
+	// Render item for flatlist, using pure component serie display.
+	// Props for component are tittles, on press function and bool to disable TouchableOpacity.
 	const renderItem = ({ item }) => (
-		<SerieDisplayPureComponent displayImage={item.mediumImage} titleEn={item.attr.titles.en} titleEnJp={item.attr.titles.en_jp} titleJa={item.attr.titles.ja_jp} onPress={() => onSeriesSelected(item)} disabledTouch={loading}/>
+		<SerieDisplayPureComponent displayImage={item.mediumImage} titleEn={item.attr.titles.en} titleEnJp={item.attr.titles.en_jp} titleJa={item.attr.titles.ja_jp} titleCa={item.attr.titles.canonicalTitle} onPress={() => onSeriesSelected(item)} disabledTouch={loading}/>
   );
 
+	// Function triggered when flat list item is pressed.
+	// Fetch genres, episode list and character list. Change in charList array triggers use effect to fetch isngle character info.
   const onSeriesSelected = (itemData) => {
 		setLoading(true);
 		getFromApiAsync(itemData.attr.genres, "genres").then(response =>{
@@ -124,17 +129,7 @@ const Home = (props) => {
 		})
   }
 
-  const onRefresh = () => {
-    setIsRefreshing(true);
-    mockApi();
- }
-  const mockApi = () => {
-    setTimeout(()=>{
-      //getFromApi();
-			setIsRefreshing(false);
-		},3000);
-  }
-
+	// Navigate to search view.
 	const goToSearch = () => {
 		Actions.search();
 	}
@@ -158,7 +153,6 @@ const Home = (props) => {
 				</View>
 			</View>
 			<View style={{...styles.bodyContainer,width:dimensions.window.width,height:dimensions.window.height*0.9}}>
-
 				<ScrollView style={{flex:1}}>
 					<View style={{flex:1, backgroundColor:"transparent"}}>
 						<Text style={styles.flatListTitle}>

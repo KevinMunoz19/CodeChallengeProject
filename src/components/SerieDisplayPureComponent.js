@@ -23,7 +23,7 @@ export default class SerieDisplayPureComponent extends React.PureComponent {
           source={{uri:this.props.displayImage}}
         />
         <View style={styles.itemTitleContainer}>
-          <Text style={styles.itemTitle}>{(this.props.titleEn)?(this.props.titleEn):(this.props.titleEnJp)?(this.props.titleEnJp):(itemData.attr.titles.titleJa)}</Text>
+          <Text style={styles.itemTitle}>{(this.props.titleEn)?(this.props.titleEn):(this.props.titleEnJp)?(this.props.titleEnJp):(itemData.attr.titles.titleJa)?(itemData.attr.titles.titleJa):(itemData.attr.titles.titleCa)}</Text>
         </View>
       </TouchableOpacity>
     )
@@ -31,7 +31,6 @@ export default class SerieDisplayPureComponent extends React.PureComponent {
 }
 
 const styles = StyleSheet.create({
-
   item: {
     height:260,
     width:125,

@@ -29,16 +29,19 @@ const Init = () => {
 	const [count,setCount] = useState(0);
 	const {getAnimeData,getFromApiAsync} = useApiKitsu();
 
+	// Backhandler listener to prevent returning from home to init view.
 	useEffect(() => {
 		BackHandler.addEventListener('hardwareBackPress', () => true)
 		return () =>
 			BackHandler.removeEventListener('hardwareBackPress', () => true)
 	}, [])
 
+	// OnChange funciton to detect change in orientation
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
   };
 
+	// Add listener to orientation change
 	useEffect(() => {
     Dimensions.addEventListener("change", onChange);
     return () => {
@@ -46,7 +49,9 @@ const Init = () => {
     };
   });
 
-	// Trigger with change in data recovered from API. Get last 60 records by calling three times, pagination 20.
+	// Trigger with change in data recovered from API. Get last 60 records of anime by fetching three times (pagination 20).
+	// Get last 30 records of anime with popularity filter by fetching three times (pagination 10).
+	// Get last 30 records of anime with averageRating filter by fetching three times (pagination 10).
   useEffect(()=>{
 		setLoading(true);
     if(count < 3){
@@ -58,7 +63,7 @@ const Init = () => {
 	},[dataPrev]);
 
 
-	// Call API, wait for result andcombine it with previous data. Add 1 to counter.
+	// Call API, wait for result and merge it with previous data. Add 1 to counter.
 	const apiCon = () => {
     getFromApiAsync(apiURL,"series").then(response => {
 			if (response.length != 0){

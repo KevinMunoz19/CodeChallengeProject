@@ -29,7 +29,7 @@ const Item = ({ itemData, widthSt, onPress, disabledTouch }) => (
       />
     </View>
     <View style={{width:widthSt*0.4,backgroundColor:"transparent", flexDirection:"column",justifyContent:"center" }}>
-      <Text style={{...styles.title,paddingLeft:"8%",fontFamily:"Dosis-Medium"}}>{(itemData.attr.titles.en)?(itemData.attr.titles.en):(itemData.attr.titles.en_jp)?(itemData.attr.titles.en_jp):(itemData.attr.titles.ja_jp)}</Text>
+      <Text style={{...styles.title,paddingLeft:"8%",fontFamily:"Dosis-Medium"}}>{(itemData.attr.titles.en)?(itemData.attr.titles.en):(itemData.attr.titles.en_jp)?(itemData.attr.titles.en_jp):(itemData.attr.titles.ja_jp)?(itemData.attr.titles.ja_jp):(itemData.attr.titles.canonicalTitle)}</Text>
     </View>
   </TouchableOpacity>
 );
@@ -55,6 +55,7 @@ const Search = () => {
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
   };
+
   useEffect(() => {
     Dimensions.addEventListener("change", onChange);
     return () => {
@@ -62,10 +63,12 @@ const Search = () => {
     };
   });
 
+	// Item to render flatlist items. Props are onPress function and bool to disabele touchable opacity when loading/searching
   const renderItem = ({ item }) => (
     <Item itemData={item} widthSt={dimensions.window.width*0.8} onPress={() => onSeriesSelected(item)} disabledTouch={searching}/>
   );
 
+	// Fetch data if search value is not empty.
   const getSearchQuery = () => {
     if(searchText.trim() != ""){
       var searchTextClean = searchText.trim();
@@ -138,7 +141,6 @@ const Search = () => {
 		})
   }
 
-
 	const nextDataBatch = () => {
 		getFromApiAsync(nextUrl,"series").then(response => {
 			if (response.length != 0){
@@ -156,11 +158,17 @@ const Search = () => {
 	const onRefresh = () => {
     setSearching(true);
     nextDataBatch();
- }
+	}
 
   return (
     <View style={styles.container}>
-      <View style={{...styles.headerContainer,height:dimensions.window.height*0.1, flexDirection:"row",justifyContent:"flex-end",alignItems:"center"}}>
+      <View style={{...styles.headerContainer,height:dimensions.window.height*0.1, flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
+				<TouchableOpacity style={{width:"20%",flexDirection:"row",paddingLeft:"5%" }}  onPress={() => Actions.pop()} >
+					<Icon
+						name="arrow-back"
+						color={"white"}
+						size={30}/>
+				</TouchableOpacity>
         <View style={{ borderColor:"black", borderWidth:2, flexDirection:"row", alignItems:'center',justifyContent:'center', width:"60%", height:"50%", backgroundColor:'white',borderRadius:10,marginHorizontal:5}}>
           <Icon
             name="search"
@@ -178,7 +186,6 @@ const Search = () => {
           />
         </View>
       </View>
-
       <View style={{...styles.bodyContainer,height:dimensions.window.height*0.9, width:dimensions.window.width, alignItems:"center", justifyItems:"center"}}>
         {(searching)&&(
           <ActivityIndicator visible={searching} size={100} color={GlobalColors.ComplementaryColor}/>
