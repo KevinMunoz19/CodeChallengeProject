@@ -39,11 +39,7 @@ const Home = (props) => {
 	const [singleCharList,setSingleCharList] = useState([]);
 	const [counter,setCounter] = useState(0);
 
-	useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', () => true)
-    return () =>
-      BackHandler.removeEventListener('hardwareBackPress', () => true)
-  }, [])
+
 
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });

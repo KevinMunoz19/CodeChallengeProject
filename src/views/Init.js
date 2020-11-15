@@ -10,6 +10,7 @@ import {
 	ActivityIndicator,
 	Dimensions,
 	Alert,
+	BackHandler,
 }	from 'react-native';
 import GlobalColors from '../colors/GlobalColors';
 import useApiKitsu from './../utils/useApiKitsu';
@@ -27,6 +28,12 @@ const Init = () => {
 	const [apiURLRating,setApiURLRating] = useState("https://kitsu.io/api/edge/anime?sort=-averageRating");
 	const [count,setCount] = useState(0);
 	const {getAnimeData,getFromApiAsync} = useApiKitsu();
+
+	useEffect(() => {
+		BackHandler.addEventListener('hardwareBackPress', () => true)
+		return () =>
+			BackHandler.removeEventListener('hardwareBackPress', () => true)
+	}, [])
 
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
