@@ -160,7 +160,13 @@ const Search = () => {
 
   return (
     <View style={styles.container}>
-      <View style={{...styles.headerContainer,height:dimensions.window.height*0.1, flexDirection:"row",justifyContent:"flex-end",alignItems:"center"}}>
+      <View style={{...styles.headerContainer,height:dimensions.window.height*0.1, flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
+				<TouchableOpacity style={{width:"20%",flexDirection:"row",paddingLeft:"5%" }}  onPress={() => Actions.pop()} >
+					<Icon
+						name="arrow-back"
+						color={"white"}
+						size={30}/>
+				</TouchableOpacity>
         <View style={{ borderColor:"black", borderWidth:2, flexDirection:"row", alignItems:'center',justifyContent:'center', width:"60%", height:"50%", backgroundColor:'white',borderRadius:10,marginHorizontal:5}}>
           <Icon
             name="search"
@@ -178,7 +184,6 @@ const Search = () => {
           />
         </View>
       </View>
-
       <View style={{...styles.bodyContainer,height:dimensions.window.height*0.9, width:dimensions.window.width, alignItems:"center", justifyItems:"center"}}>
         {(searching)&&(
           <ActivityIndicator visible={searching} size={100} color={GlobalColors.ComplementaryColor}/>
