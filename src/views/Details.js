@@ -100,15 +100,15 @@ const Details = (props) => {
 
 	const renderItemChar = ({ item }) => (
 		<View style={{backgroundColor:GlobalColors.AnalogousSecondaryColor,borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
-			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light" ,paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>{(item.names.name)}</Text>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light" ,paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.names.name)}</Text>
 		</View>
   );
 
 	const renderItemEp = ({ item }) => (
 		<View style={{backgroundColor:GlobalColors.AnalogousSecondaryColor,borderRadius:20,marginHorizontal:10,marginVertical:3, padding:3, height:125, width:250, alignItems:"center", justifyContent:"center"}}>
-			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>{(item.titles.canonicalTitle)}</Text>
-			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>S{(item.seasonNumber)} Ep{(item.number)}</Text>
-			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:"white"}} allowFontScaling={false}>{(item.airdate)?(item.airdate).split("-").reverse().join("-"):"-"}</Text>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.titles.canonicalTitle)}</Text>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>S{(item.seasonNumber)} Ep{(item.number)}</Text>
+			<Text style={{...styles.textHeader, fontSize:responsiveFontSize.body1, fontFamily:"Dosis-Light",paddingLeft:0,padding:4, color:GlobalColors.LetterColor}} allowFontScaling={false}>{(item.airdate)?(item.airdate).split("-").reverse().join("-"):"-"}</Text>
 		</View>
   );
 
@@ -179,7 +179,7 @@ const Details = (props) => {
 								style={{width:"100%", height:"100%"}}
 								source={{uri:props.singleSerie.mediumImage}}
 							>
-								<Icon name="play-arrow" color="white" size={responsiveFontSize.headline2} style={{...styles.headerIcon,position:"absolute", right:"5%"}} />
+								<Icon name="play-arrow" color={GlobalColors.LetterColor} size={responsiveFontSize.headline2} style={{...styles.headerIcon,position:"absolute", right:"5%"}} />
 							</ImageBackground>
 						</TouchableOpacity>
 	        </View>
@@ -193,11 +193,11 @@ const Details = (props) => {
 	          </View>
 						<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"center"}}>
 							<TouchableOpacity style={{...styles.playButton}} onPress={() => { setCharacterModalVisible(true)}}>
-								<Icon name="face" color="white" size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
+								<Icon name="face" color={GlobalColors.LetterColor} size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
 								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Characters</Text>
 							</TouchableOpacity>
 							<TouchableOpacity style={{...styles.playButton}} onPress={() => { setEpisodeModalVisible(true)}}>
-								<Icon name="subscriptions" color="white" size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
+								<Icon name="subscriptions" color={GlobalColors.LetterColor} size={responsiveFontSize.subtitle1} style={styles.headerIcon} />
 								<Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, marginHorizontal:2,fontFamily:"Dosis-Bold"}} allowFontScaling={false}>Episodes</Text>
 							</TouchableOpacity>
 	          </View>
@@ -239,7 +239,7 @@ const Details = (props) => {
 		          </View>
 							<View style={{...styles.textHeaderContainer,flex:1,backgroundColor:"transparent",flexDirection:"row",width:"100%",justifyContent:"center",height:"70%"}}>
 								<View style={{...styles.textHeaderContainer,backgroundColor:GlobalColors.TriadicSecondaryColor,flexDirection:"column",justifyItems:"center", borderRadius:10, alignItems:"center"}}>
-			            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, color:"white",fontFamily:"Dosis-Medium", paddingLeft:"0%", paddingHorizontal:"10%"}} allowFontScaling={false}>{props.singleSerie.rating.ageRating}</Text>
+			            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.subtitle1, color:GlobalColors.LetterColor,fontFamily:"Dosis-Medium", paddingLeft:"0%", paddingHorizontal:"10%"}} allowFontScaling={false}>{props.singleSerie.rating.ageRating}</Text>
 			          </View>
 		            <Text style={{...styles.textHeader, fontSize:responsiveFontSize.button1, fontFamily:"Dosis-Regular"}} allowFontScaling={false}>{props.singleSerie.rating.ageRatingGuide}</Text>
 		          </View>
@@ -325,14 +325,14 @@ const styles = StyleSheet.create({
 
   },
   textStyle: {
-    color: "white",
+    color: GlobalColors.LetterColor,
     fontWeight: "bold",
     textAlign: "center"
   },
   modalText: {
     marginBottom: 15,
     textAlign: "center",
-		color: "white",
+		color: GlobalColors.LetterColor,
   },
 
 
