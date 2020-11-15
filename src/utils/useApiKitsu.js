@@ -110,6 +110,7 @@ const useApiKitsu = () => {
     				mappedElement.seasonNumber = await element.attributes.seasonNumber;
     				mappedElement.number = await element.attributes.number;
     				mappedElement.airdate = await element.attributes.airdate;
+            mappedElement.thumbnail = await element.attributes.thumbnail;
           }
           if(customJsonType=="characterList"){
             mappedElement.id = await element.id;
