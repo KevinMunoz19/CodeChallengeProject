@@ -20,8 +20,8 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 const window = Dimensions.get("window");
 const screen = Dimensions.get("screen");
 
-const Item = ({ itemData, widthSt, onPress }) => (
-  <TouchableOpacity style={{...styles.item,width:widthSt,flexDirection:"row"}}  onPress={onPress}>
+const Item = ({ itemData, widthSt, onPress, disabledTouch }) => (
+  <TouchableOpacity style={{...styles.item,width:widthSt,flexDirection:"row"}}  onPress={onPress} disabled={disabledTouch}>
     <View style={{width:widthSt*0.5,backgroundColor:"transparent"}}>
       <Image
         style={{height:((widthSt*0.9)/2),resizeMode: 'contain'}}
@@ -40,10 +40,17 @@ const Search = () => {
 	const [dataFL,setDataFL] = useState([]);
   const [isRefreshing,setIsRefreshing] = useState(false);
 	const [apiURL,setApiURL] = useState("");
-	const {getAnimeData} = useApiKitsu();
+	const {getAnimeData,getFromApiAsync} = useApiKitsu();
   const [searchResult,setSearchResult] = useState([]);
   const [searchText,setSearchText] = useState("");
   const [searching,setSearching] = useState(false);
+
+	const [serieGenres,setSerieGenres] = useState([]);
+	const [serieEpisodes,setSerieEpisodes] = useState([]);
+	const [singleSerieToDetail,setSingleSerieToDetail] = useState({});
+	const [charList,setCharList] = useState([]);
+	const [singleCharList,setSingleCharList] = useState([]);
+	const [counter,setCounter] = useState(0);
 
   const onChange = ({ window, screen }) => {
     setDimensions({ window, screen });
@@ -56,69 +63,63 @@ const Search = () => {
   });
 
   const renderItem = ({ item }) => (
-    <Item itemData={item} widthSt={dimensions.window.width*0.8} onPress={() => onSeriesSelected(item)}/>
+    <Item itemData={item} widthSt={dimensions.window.width*0.8} onPress={() => onSeriesSelected(item)} disabledTouch={searching}/>
   );
 
   const getSearchQuery = () => {
     if(searchText.trim() != ""){
       var searchTextClean = searchText.trim();
       setSearching(true);
-      getFromApi(`https://kitsu.io/api/edge/anime?filter[text]=${searchTextClean}`);
+			getFromApiAsync(`https://kitsu.io/api/edge/anime?filter[text]=${searchTextClean}`,"series").then(response => {
+				response.pop();
+				setSearchResult([...response ]);
+				setSearching(false);
+			})
     }
   }
 
-	const getFromApi = (searchUrl) => {
-    getAnimeData(searchUrl,(res)=> {
-      let jsonResponse = JSON.parse(res);
-      let seriesData = jsonResponse.data;
-      var arrayRecoveredData = seriesData.map(function(element){
-				var mappedElement = {};
-				mappedElement.id = element.id;
-				mappedElement.type = element.type;
-				mappedElement.mediumImage = element.attributes.posterImage.medium;
-				var mappedElementAttributes = {};
-				mappedElementAttributes.synopsis = element.attributes.synopsis;
-				mappedElementAttributes.description = element.attributes.description;
-				mappedElementAttributes.averageRating = element.attributes.averageRating;
-				mappedElementAttributes.youtubeVideoId = element.attributes.youtubeVideoId;
-				mappedElementAttributes.genres = element.relationships.genres.links.related;
-				var mappedElementTitles = {};
-				mappedElementTitles.canonicalTitle = element.attributes.canonicalTitle;
-				mappedElementTitles.en = element.attributes.titles.en;
-				mappedElementTitles.en_jp = element.attributes.titles.en_jp;
-				mappedElementTitles.ja_jp = element.attributes.titles.ja_jp;
-				mappedElementAttributes.titles = mappedElementTitles;
-				mappedElement.attr = mappedElementAttributes;
-				var mappedElementDates = {};
-				mappedElementDates.startDate = element.attributes.startDate;
-				mappedElementDates.endDate = element.attributes.endDate;
-				mappedElementDates.status = element.attributes.status;
-				mappedElementDates.nextRelease = element.attributes.nextRelease;
-				mappedElement.dates = mappedElementDates;
-				var mappedElementEpisodes = {};
-				mappedElementEpisodes.count = element.attributes.episodeCount;
-				mappedElementEpisodes.episodeLength = element.attributes.episodeLength;
-				mappedElementEpisodes.episodeListLink = element.relationships.episodes.links.related;
-				mappedElement.episodes = mappedElementEpisodes;
-				var mappedElementRating = {};
-				mappedElementRating.ageRating = element.attributes.ageRating;
-				mappedElementRating.ageRatingGuide = element.attributes.ageRatingGuide;
-				mappedElement.rating = mappedElementRating;
-				var mappedElementCharacters = {};
-				mappedElementCharacters.characterListLink = element.relationships.characters.links.related;
-				mappedElement.characters = mappedElementCharacters;
-				return mappedElement;
-      });
-      setSearchResult([...arrayRecoveredData ]);
-      setSearching(false)
-    }, (err) => {
-      console.log("Respuesta no exitosa ",err);
-    });
-  }
+	useEffect(() => {
+    if(charList.length != 0){
+			if(counter < charList.length){
+				var urlActual = charList[counter].singleCharacterLink;
+				getFromApiAsync(urlActual,"singleCharacter").then(response => {
+					setSingleCharList([...singleCharList,response]);
+					setCounter(counter+1);
+				});
+			}
+			if (counter==charList.length){
+				var singleSerieToDetailUpdated = singleSerieToDetail;
+				singleSerieToDetailUpdated.characters.singleCharacterList = [...singleCharList]
+				Actions.details({singleSerie: singleSerieToDetailUpdated });
+				setCharList([]);
+				setCounter(0);
+				setSingleCharList([]);
+				setSearching(false);
+			}
+		}
+  },[charList,counter]);
 
   const onSeriesSelected = (itemData) => {
+		setSearching(true);
     console.log("id ",itemData.id);
-		Actions.details({singleSerie: itemData });
+		getFromApiAsync(itemData.attr.genres, "genres").then(response =>{
+			response.pop();
+			itemData.attr.genresList= [...response];
+			console.log("resp ",response)
+			console.log("then genres")
+			getFromApiAsync(itemData.episodes.episodeListLink,"episodeList").then(response =>{
+				response.pop();
+				console.log("resp ep ",response)
+				itemData.episodes.episodesList= [...response];
+				getFromApiAsync(itemData.characters.characterListLink,"characterList").then(response =>{
+					response.pop();
+					console.log("resp char lst ",response)
+					itemData.characters.charactersList= [...response];
+					setCharList([...response]);
+					setSingleSerieToDetail(itemData);
+				})
+			})
+		})
   }
 
   return (
